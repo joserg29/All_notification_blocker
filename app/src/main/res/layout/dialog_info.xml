@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog_rounded"
+    android:minWidth="300dp"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding">
+
+
+    <TextView
+        android:id="@+id/text_view_title"
+        style="@style/dialog_title"
+
+        android:text="@string/title" />
+
+    <TextView
+        android:id="@+id/text_view_description"
+        style="@style/dialog_text"
+
+        android:text="@string/description_for_the_message" />
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/dialog_buttons_top_margin"
+
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/button_yes"
+            style="@style/dialog_button"
+            android:layout_width="wrap_content"
+            android:text="@string/ok" />
+
+    </LinearLayout>
+
+</LinearLayout>

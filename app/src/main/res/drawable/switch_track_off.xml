@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape
+            android:dither="true"
+            android:shape="rectangle"
+            android:useLevel="false"
+            android:visible="true">
+            <solid android:color="@color/dark_grey" />
+            <corners android:radius="@dimen/switch_corner_radius" />
+
+
+            <size
+                android:width="@dimen/switch_width"
+                android:height="@dimen/switch_height" />
+
+            <stroke
+                android:width="1dp"
+                android:color="#FFF" />
+        </shape>
+    </item>
+</layer-list>

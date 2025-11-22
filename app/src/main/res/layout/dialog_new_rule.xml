@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/dialog_rounded"
+    android:minWidth="300dp"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="vertical">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/title1"
+                style="@style/card_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/image_view_from"
+                android:text="@string/from"
+                android:textColor="@color/blue" />
+
+            <TextView
+                android:id="@+id/startTimeTv"
+                style="@style/card_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/title1"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/image_view_from"
+                android:text="@string/select_start_date_time"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
+
+            <ImageView
+                android:id="@+id/image_view_from"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_alignParentStart="true"
+                android:background="@color/white"
+                android:contentDescription="@string/notification_image"
+                android:src="@drawable/ic_time"
+                app:tint="@color/blue" />
+
+            <Button
+                android:id="@+id/button_start"
+                style="@style/Widget.AppCompat.Button.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_alignParentEnd="true"
+                android:text="@string/select"
+                android:textSize="10sp" />
+
+
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/grey" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+
+            android:layout_marginTop="16dp"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/title2"
+                style="@style/card_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/image_view_to"
+                android:text="@string/to"
+                android:textColor="@color/blue" />
+
+            <TextView
+                android:id="@+id/endTimeTv"
+                style="@style/card_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/title2"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/image_view_to"
+                android:text="@string/select_end_date_time"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
+
+            <ImageView
+                android:id="@+id/image_view_to"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_alignParentStart="true"
+                android:background="@color/white"
+                android:contentDescription="@string/notification_image"
+                android:src="@drawable/ic_time"
+                app:tint="@color/blue" />
+
+
+            <Button
+                android:id="@+id/button_end"
+                style="@style/Widget.AppCompat.Button.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_alignParentEnd="true"
+                android:text="@string/select"
+                android:textSize="10sp" />
+
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/timeDurationTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:gravity="center"
+            android:text="@string/duration"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textStyle="bold" />
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <ToggleButton
+                android:id="@+id/sundayTb"
+                style="@style/toggleButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:background="@drawable/toggle_bg"
+                android:textColor="@color/red"
+                android:textOff="S"
+                android:textOn="S" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <ToggleButton
+                android:id="@+id/mondayTb"
+                style="@style/toggleButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:background="@drawable/toggle_bg"
+                android:textOff="M"
+                android:textOn="M" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ToggleButton
+                android:id="@+id/tuesdayTb"
+                style="@style/toggleButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:background="@drawable/toggle_bg"
+                android:textOff="T"
+                android:textOn="T" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ToggleButton
+                android:id="@+id/wednesdayTb"
+                style="@style/toggleButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:background="@drawable/toggle_bg"
+                android:textOff="W"
+                android:textOn="W" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ToggleButton
+                android:id="@+id/thursdayTb"
+                style="@style/toggleButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:background="@drawable/toggle_bg"
+                android:textOff="T"
+                android:textOn="T" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ToggleButton
+                android:id="@+id/fridayTb"
+                style="@style/toggleButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:background="@drawable/toggle_bg"
+                android:textOff="F"
+                android:textOn="F" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ToggleButton
+                android:id="@+id/saturdayTb"
+                style="@style/toggleButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:background="@drawable/toggle_bg"
+                android:textOff="S"
+                android:textOn="S" />
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/grey" />
+        <CheckBox
+            android:id="@+id/repeat_check_box"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/repeat" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:text="@string/or"/>
+
+
+        <TextView
+            android:id="@+id/dateRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:padding="12dp"
+            android:textColor="#000"
+            android:textSize="16sp"
+            app:drawableEndCompat="@drawable/ic_calendar" />
+
+        <TextView
+            android:id="@+id/resTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/duration"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textStyle="bold" />
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dialog_buttons_top_margin"
+        android:orientation="horizontal">
+
+
+        <Button
+            android:id="@+id/button_no"
+            style="@style/dialog_button"
+
+            android:text="@string/cancel" />
+
+        <Button
+            android:id="@+id/button_yes"
+            style="@style/dialog_button"
+
+            android:text="@string/ok" />
+    </LinearLayout>
+
+</LinearLayout>

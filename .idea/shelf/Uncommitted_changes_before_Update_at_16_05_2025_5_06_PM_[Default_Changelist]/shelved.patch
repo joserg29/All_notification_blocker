@@ -1,0 +1,551 @@
+Index: app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesAdapter.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.projects.allnotificationblocker.blockthemall.Activities.Rules\r\n\r\nimport android.content.*\r\nimport android.view.*\r\nimport android.widget.*\r\nimport androidx.recyclerview.widget.*\r\nimport com.projects.allnotificationblocker.blockthemall.R\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.*\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.convertDateTimeToTodayTime\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.getDuration\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.toReadableFormat\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.toReadableFormat1\r\nimport com.projects.allnotificationblocker.blockthemall.data.db.entities.*\r\nimport timber.log.*\r\n\r\nclass RulesAdapter(context: Context, private val rules: MutableList<Rule>):\r\n    RecyclerView.Adapter<RulesAdapter.ViewHolder?>() {\r\n    private val mContext: Context? = context\r\n    private lateinit var listener: RulesAdapterListener\r\n\r\n    init {\r\n        if (context is RulesAdapterListener) {\r\n            listener = context as RulesAdapterListener\r\n        } else {\r\n            throw RuntimeException(\r\n                context.toString()\r\n                        + \" must implement RulesAdapterListener\"\r\n            )\r\n        }\r\n    }\r\n\r\n    override fun getItemCount(): Int {\r\n        return rules.size\r\n    }\r\n\r\n    override fun onBindViewHolder(holder: ViewHolder, pos: Int) {\r\n        val rule = rules.get(pos)\r\n        val genericViewHolder = holder\r\n\r\n        genericViewHolder.mRuletypeTextview!!.text = rule.ruleTypeString\r\n\r\n        if (listener!!.mode == Constants.MODE_HOMEPAGE) {\r\n            if (rule.everyday) {\r\n                rule.from = convertDateTimeToTodayTime(rule.from)\r\n                rule.to = convertDateTimeToTodayTime(rule.to)\r\n            }\r\n\r\n            genericViewHolder.mRulefromTextview!!.text = toReadableFormat(rule.from)\r\n            genericViewHolder.mRuletoTextview!!.text = toReadableFormat(rule.to)\r\n            genericViewHolder.textViewDuration!!.text = getDuration(rule.from, rule.to)\r\n\r\n            if (rule.isInactive()) {\r\n                Timber.tag(\"AppInfo\").d(\"Rule is still inactive\")\r\n                genericViewHolder.textViewStatus!!.visibility = View.VISIBLE\r\n                genericViewHolder.textViewStatus!!.setText(R.string.inactive)\r\n            }\r\n\r\n            if (rule.isActive()) {\r\n                Timber.tag(\"AppInfo\").d(\"rule is active\")\r\n                genericViewHolder.textViewStatus!!.visibility = View.VISIBLE\r\n                genericViewHolder.textViewStatus!!.setText(R.string.active)\r\n            }\r\n\r\n\r\n            if (rule.isExpired()) {\r\n                Timber.tag(\"AppInfo\").d(\"rule is expired\")\r\n                genericViewHolder.textViewStatus!!.visibility = View.VISIBLE\r\n                genericViewHolder.textViewStatus!!.setText(R.string.expired)\r\n            }\r\n        } else {\r\n            genericViewHolder.mRulefromTextview!!.text = toReadableFormat1(rule.from)\r\n            genericViewHolder.mRuletoTextview!!.text = toReadableFormat1(rule.to)\r\n            genericViewHolder.textViewDuration!!.text = getDuration(rule.from, rule.to)\r\n\r\n            genericViewHolder.textViewStatus!!.visibility = View.GONE\r\n        }\r\n\r\n        genericViewHolder.mMoreImagebutton!!.setOnClickListener(object: View.OnClickListener {\r\n            override fun onClick(view: View?) {\r\n                //init the wrapper with style\r\n                val wrapper: Context = ContextThemeWrapper(mContext, R.style.PopupMenu)\r\n\r\n                //creating a popup menu\r\n                val popup = PopupMenu(wrapper, genericViewHolder.mMoreImagebutton)\r\n                //inflating menu from xml resource\r\n                popup.inflate(R.menu.rules_menu)\r\n                //adding click listener\r\n                popup.setOnMenuItemClickListener(object: PopupMenu.OnMenuItemClickListener {\r\n                    override fun onMenuItemClick(item: MenuItem): Boolean {\r\n//                        if (item.getItemId() == R.id.edit) {//handle menu1 click\r\n//                            //Toast.makeText(mContext, \"Setting clicked\", Toast.LENGTH_SHORT).show();\r\n//                            listener.editRule(pos, rule);\r\n//                        }\r\n\r\n                        if (item.itemId == R.id.remove) { //handle menu1 click\r\n                            //Toast.makeText(mContext, \"Setting clicked\", Toast.LENGTH_SHORT).show();\r\n                            listener.removeRule(rule)\r\n                        }\r\n                        return false\r\n                    }\r\n                })\r\n                //displaying the popup\r\n                popup.show()\r\n            }\r\n        })\r\n    }\r\n\r\n    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): ViewHolder {\r\n        val itemView = LayoutInflater.from(viewGroup.context)\r\n            .inflate(R.layout.list_item_rule, viewGroup, false)\r\n        return ViewHolder(itemView)\r\n    }\r\n\r\n    interface RulesAdapterListener {\r\n        fun removeRule(rule: Rule?)\r\n\r\n        fun editRule(pos: Int, rule: Rule?)\r\n\r\n        val mode: Int\r\n    }\r\n\r\n    class ViewHolder internal constructor(v: View): RecyclerView.ViewHolder(v) {\r\n        var mRuletypeTextview: TextView? = null\r\n        var mRulefromTextview: TextView? = null\r\n        var mRuletoTextview: TextView? = null\r\n        var mMoreImagebutton: ImageButton? = null\r\n        var textViewStatus: TextView? = null\r\n        var textViewDuration: TextView? = null\r\n\r\n\r\n        init {\r\n            initView(v)\r\n        }\r\n\r\n        fun initView(itemView: View) {\r\n            mRuletypeTextview = itemView.findViewById<TextView>(R.id.textview_ruletype)\r\n            mRulefromTextview = itemView.findViewById<TextView>(R.id.textview_rulefrom)\r\n            mRuletoTextview = itemView.findViewById<TextView>(R.id.textview_ruleto)\r\n            mMoreImagebutton = itemView.findViewById<ImageButton>(R.id.imagebutton_more)\r\n            textViewStatus = itemView.findViewById<TextView>(R.id.textview_status)\r\n            textViewDuration = itemView.findViewById<TextView>(R.id.textview_duration)\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesAdapter.kt b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesAdapter.kt
+--- a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesAdapter.kt	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesAdapter.kt	(date 1747119302492)
+@@ -87,15 +87,14 @@
+                 //adding click listener
+                 popup.setOnMenuItemClickListener(object: PopupMenu.OnMenuItemClickListener {
+                     override fun onMenuItemClick(item: MenuItem): Boolean {
+-//                        if (item.getItemId() == R.id.edit) {//handle menu1 click
+-//                            //Toast.makeText(mContext, "Setting clicked", Toast.LENGTH_SHORT).show();
+-//                            listener.editRule(pos, rule);
+-//                        }
++                        if (item.getItemId() == R.id.edit) {//handle menu1 click
++                            listener.editRule(pos, rule);
++                        }
+ 
+                         if (item.itemId == R.id.remove) { //handle menu1 click
+-                            //Toast.makeText(mContext, "Setting clicked", Toast.LENGTH_SHORT).show();
+                             listener.removeRule(rule)
+                         }
++
+                         return false
+                     }
+                 })
+Index: app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.projects.allnotificationblocker.blockthemall.Activities.Rules\r\n\r\nimport android.content.*\r\nimport android.content.pm.*\r\nimport android.graphics.drawable.*\r\nimport android.os.*\r\nimport android.util.*\r\nimport android.view.*\r\nimport android.widget.*\r\nimport androidx.appcompat.app.*\r\nimport androidx.recyclerview.widget.*\r\nimport com.bumptech.glide.*\r\nimport com.google.android.material.floatingactionbutton.*\r\nimport com.mikhaellopez.circularimageview.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.NewRuleDialog.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.NewRuleDialog.Companion.newInstance\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesAdapter.*\r\nimport com.projects.allnotificationblocker.blockthemall.Dialogs.*\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.*\r\nimport com.projects.allnotificationblocker.blockthemall.R\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.*\r\nimport com.projects.allnotificationblocker.blockthemall.data.db.entities.*\r\nimport timber.log.*\r\n\r\nclass RulesActivity: AppCompatActivity(), View.OnClickListener, RulesAdapterListener,\r\n    DialogListener {\r\n    var rulesManager: RulesManager? = null\r\n    override var mode: Int = 0\r\n    var appInfo: AppInfo? = null\r\n    private var textViewAppName: TextView? = null\r\n    private var mRecyclerViewRules: RecyclerView? = null\r\n    private var rulesAdapter: RulesAdapter? = null\r\n    private var packageName: String = \"\"\r\n    private var mImageViewAppicon: CircularImageView? = null\r\n    private var mTextViewPackagename: TextView? = null\r\n    private var dataType = -1\r\n    private var rules: MutableList<Rule> = ArrayList<Rule>()\r\n    private var mButtonBackImage: ImageButton? = null\r\n\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        setContentView(R.layout.activity_rules)\r\n\r\n        Timber.tag(\"AppInfo\").d(\"RulesActivity\")\r\n\r\n        val s = intent.getStringExtra(Constants.PARAM_RULES_MANAGER)\r\n        Timber.tag(\"AppInfo\").d(\" s : %s\", s)\r\n        if (s != null && !s.isEmpty()) {\r\n            rulesManager = RulesManager.fromJson(s)\r\n            rulesManager!!.logAllRules()\r\n        } else {\r\n            rulesManager = RulesManager()\r\n        }\r\n\r\n        mode = intent.getIntExtra(Constants.PARAM_MODE, -1)\r\n\r\n\r\n        packageName = intent.getStringExtra(Constants.PARAM_PACKAGE_NAME)!!\r\n        dataType = intent.getIntExtra(Constants.PARAM_DATA_TYPE, -1)\r\n\r\n        initView()\r\n        setData()\r\n\r\n        if (rulesManager != null) {\r\n            if (dataType == Constants.DATA_TYPE_APPLICATION || dataType == Constants.DATA_TYPE_BLOCK_ALL) {\r\n                rules = rulesManager!!.getCustomRules(packageName)\r\n            } else if (dataType == Constants.DATA_TYPE_CONTACT) {\r\n                rules = rulesManager!!.getCustomRules(Util.getPhoneId(packageName))\r\n            }\r\n            Timber.tag(\"AppInfo\").d(\"rules size: %d\", rules.size)\r\n            for (i in rules.indices) {\r\n                rules.get(i)!!.logRule()\r\n            }\r\n        }\r\n\r\n        setAdapter()\r\n    }\r\n\r\n    private fun initView() {\r\n        textViewAppName = findViewById<TextView>(R.id.text_view_app_name)\r\n        mRecyclerViewRules = findViewById<RecyclerView>(R.id.rules_recycler_view)\r\n        val mFabNewrule = findViewById<FloatingActionButton>(R.id.newrule_fab)\r\n        mFabNewrule.setOnClickListener(this)\r\n        mImageViewAppicon = findViewById<CircularImageView>(R.id.appicon_image_view)\r\n        mTextViewPackagename = findViewById<TextView>(R.id.packagename_text_view)\r\n        setAdapter()\r\n\r\n\r\n        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);\r\n        mButtonBackImage = findViewById<ImageButton>(R.id.image_button_back)\r\n        mButtonBackImage!!.setOnClickListener(this)\r\n    }\r\n\r\n    private fun setData() {\r\n        when (dataType) {\r\n            Constants.DATA_TYPE_APPLICATION -> {\r\n                appInfo = AppInfo.getAppInfo(applicationContext, packageName)\r\n                if (appInfo == null) {\r\n                    return\r\n                }\r\n                textViewAppName!!.text = appInfo!!.appName\r\n\r\n                var appIcon: Drawable? = null\r\n                try {\r\n                    appIcon = packageManager\r\n                        .getApplicationIcon(appInfo!!.packageName!!)\r\n                } catch (e: PackageManager.NameNotFoundException) {\r\n                    e.printStackTrace()\r\n                }\r\n\r\n                if (appIcon != null) {\r\n                    Glide.with(this).load(appIcon).into(mImageViewAppicon!!)\r\n                } else {\r\n                    Glide.with(this).load(R.drawable.appicon1).into(mImageViewAppicon!!)\r\n                }\r\n\r\n                mTextViewPackagename!!.text = packageName\r\n            }\r\n\r\n            Constants.DATA_TYPE_BLOCK_ALL -> {\r\n                textViewAppName!!.setText(R.string.block_all)\r\n                mImageViewAppicon!!.setImageResource(R.drawable.appicon)\r\n                mTextViewPackagename!!.setText(R.string.notifications_and_calls)\r\n            }\r\n        }\r\n    }\r\n\r\n    override fun onOptionsItemSelected(item: MenuItem): Boolean {\r\n        if (item.itemId == android.R.id.home) { //do whatever\r\n            onBackPressed()\r\n            return true\r\n        }\r\n        return super.onOptionsItemSelected(item)\r\n    }\r\n\r\n    override fun onBackPressed() {\r\n        //Execute your code here\r\n        super.onBackPressed()\r\n        val intent = Intent()\r\n        intent.putExtra(Constants.PARAM_RULES_MANAGER, rulesManager!!.toJson())\r\n        setResult(RESULT_OK, intent)\r\n        finish()\r\n    }\r\n\r\n    private fun setAdapter() {\r\n        rulesAdapter = RulesAdapter(this, rules)\r\n\r\n        mRecyclerViewRules!!.setHasFixedSize(true)\r\n        mRecyclerViewRules!!.setItemViewCacheSize(20)\r\n        mRecyclerViewRules!!.setDrawingCacheEnabled(true)\r\n        mRecyclerViewRules!!.drawingCacheQuality = View.DRAWING_CACHE_QUALITY_HIGH\r\n\r\n        // use a linear layout manager\r\n        val layoutManager = LinearLayoutManager(this)\r\n        mRecyclerViewRules!!.layoutManager = layoutManager\r\n\r\n        mRecyclerViewRules!!.adapter = rulesAdapter\r\n    }\r\n\r\n    override fun onClick(v: View) {\r\n        if (v.id == R.id.newrule_fab) {\r\n            val fm = supportFragmentManager\r\n            val newRuleDialog = newInstance(-1, mode)\r\n            newRuleDialog.show(fm, \"fragment_edit_name\")\r\n        }\r\n\r\n        if (v.id == R.id.image_button_back) {\r\n            onBackPressed()\r\n        }\r\n    }\r\n\r\n    override fun removeRule(rule: Rule?) {\r\n        val dialog = ConfirmDialog(\r\n            this,\r\n            getString(R.string.are_you_sure_remove_rule)\r\n        )\r\n        dialog.show()\r\n        dialog.setCancelable(true)\r\n        dialog.setOnDismissListener(object: DialogInterface.OnDismissListener {\r\n            override fun onDismiss(dialogInterface: DialogInterface?) {\r\n                if (dialog.result) {\r\n                    //rule.stopTimer(getApplicationContext());\r\n\r\n                    rulesManager!!.rules.remove(rule)\r\n                    rules.remove(rule)\r\n                    rulesAdapter!!.notifyDataSetChanged()\r\n                }\r\n            }\r\n        })\r\n    }\r\n\r\n    override fun editRule(pos: Int, rule: Rule?) {\r\n        val fm = supportFragmentManager\r\n        val newRuleDialog = newInstance(-1, mode)\r\n        newRuleDialog.show(fm, \"fragment_edit_name\")\r\n    }\r\n\r\n\r\n    override fun saveNewRule(from: String, to: String) {\r\n        Timber.tag(\"AppInfo\").d(\"saveNewRule\")\r\n\r\n        if (rulesManager == null) {\r\n            return\r\n        }\r\n\r\n        val rule: Rule?\r\n        if (dataType == Constants.DATA_TYPE_APPLICATION) {\r\n            rule = rulesManager!!.addCustomRule(\r\n                appInfo!!.packageName!!,\r\n                from,\r\n                to, null, mode\r\n            )\r\n        } else if (dataType == Constants.DATA_TYPE_CONTACT) {\r\n            Log.d(\"ERRORR\", \"das\")\r\n            rule = null\r\n        } else {\r\n            rule = rulesManager!!.addCustomRule(\r\n                packageName,\r\n                from,\r\n                to, null, mode\r\n            )\r\n        }\r\n\r\n        rules.add(rule!!)\r\n\r\n        rulesManager!!.logAllRules()\r\n        rulesAdapter!!.notifyDataSetChanged()\r\n\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesActivity.kt b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesActivity.kt
+--- a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesActivity.kt	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/RulesActivity.kt	(date 1747145778448)
+@@ -50,30 +50,7 @@
+             rulesManager!!.logAllRules()
+         } else {
+             rulesManager = RulesManager()
+-        }
+-
+-        mode = intent.getIntExtra(Constants.PARAM_MODE, -1)
+-
+-
+-        packageName = intent.getStringExtra(Constants.PARAM_PACKAGE_NAME)!!
+-        dataType = intent.getIntExtra(Constants.PARAM_DATA_TYPE, -1)
+-
+-        initView()
+-        setData()
+-
+-        if (rulesManager != null) {
+-            if (dataType == Constants.DATA_TYPE_APPLICATION || dataType == Constants.DATA_TYPE_BLOCK_ALL) {
+-                rules = rulesManager!!.getCustomRules(packageName)
+-            } else if (dataType == Constants.DATA_TYPE_CONTACT) {
+-                rules = rulesManager!!.getCustomRules(Util.getPhoneId(packageName))
+-            }
+-            Timber.tag("AppInfo").d("rules size: %d", rules.size)
+-            for (i in rules.indices) {
+-                rules.get(i)!!.logRule()
+-            }
+-        }
+-
+-        setAdapter()
++        }        setAdapter()
+     }
+ 
+     private fun initView() {
+@@ -103,6 +80,29 @@
+                 var appIcon: Drawable? = null
+                 try {
+                     appIcon = packageManager
++
++        mode = intent.getIntExtra(Constants.PARAM_MODE, -1)
++
++
++        packageName = intent.getStringExtra(Constants.PARAM_PACKAGE_NAME)!!
++        dataType = intent.getIntExtra(Constants.PARAM_DATA_TYPE, -1)
++
++        initView()
++        setData()
++
++        if (rulesManager != null) {
++            if (dataType == Constants.DATA_TYPE_APPLICATION || dataType == Constants.DATA_TYPE_BLOCK_ALL) {
++                rules = rulesManager!!.getCustomRules(packageName)
++            } else if (dataType == Constants.DATA_TYPE_CONTACT) {
++                rules = rulesManager!!.getCustomRules(Util.getPhoneId(packageName))
++            }
++            Timber.tag("AppInfo").d("rules size: %d", rules.size)
++            for (i in rules.indices) {
++                rules.get(i)!!.logRule()
++            }
++        }
++
++
+                         .getApplicationIcon(appInfo!!.packageName!!)
+                 } catch (e: PackageManager.NameNotFoundException) {
+                     e.printStackTrace()
+@@ -221,10 +221,20 @@
+             )
+         }
+ 
++//        if(type == "edit") {
++//            if( i in 0 until rules/size) {
++//                rules[i] = rule
++//            }
++//        } else {
+         rules.add(rule!!)
++//        }
+ 
+         rulesManager!!.logAllRules()
+         rulesAdapter!!.notifyDataSetChanged()
+ 
+     }
++
++//    override fun saveNewRule(from: String, to: String) {
++//        TODO("Not yet implemented")
++//    }
+ }
+Index: app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/NewRuleDialog.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.projects.allnotificationblocker.blockthemall.Activities.Rules\r\n\r\nimport android.app.*\r\nimport android.content.*\r\nimport android.graphics.*\r\nimport android.os.*\r\nimport android.view.*\r\nimport android.widget.*\r\nimport androidx.core.graphics.drawable.*\r\nimport androidx.fragment.app.DialogFragment\r\nimport com.kunzisoft.switchdatetime.SwitchDateTimeDialogFragment.*\r\nimport com.projects.allnotificationblocker.blockthemall.R\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.*\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.currentDateTime\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.getDateString\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.getDateStringAmPm\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.getDuration\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.isDate1AfterDate2\r\nimport timber.log.*\r\nimport java.text.*\r\nimport java.util.*\r\n\r\n\r\nclass NewRuleDialog: DialogFragment(), View.OnClickListener {\r\n    var listener: DialogListener? = null\r\n    var pos: Int = -1\r\n    var mode: Int = 0\r\n    var type: Int = 0\r\n    private var mViewDatetimeFromText: TextView? = null\r\n    private var mViewDatetimeToText: TextView? = null\r\n    var from: String = \"\"\r\n        private set\r\n    var to: String = \"\"\r\n        private set\r\n    private var mViewDurationText: TextView? = null\r\n    private var mLayoutDurationLinear: LinearLayout? = null\r\n\r\n    override fun onCreateView(\r\n        inflater: LayoutInflater, container: ViewGroup?,\r\n        savedInstanceState: Bundle?,\r\n    ): View? {\r\n        return inflater.inflate(R.layout.dialog_new_rule, container)\r\n    }\r\n\r\n    override fun onAttach(context: Context) {\r\n        super.onAttach(context)\r\n\r\n        if (context is DialogListener) {\r\n            listener = context as DialogListener\r\n        } else {\r\n            throw RuntimeException(\r\n                context\r\n                    .toString() + \" must implement DialogListener\"\r\n            )\r\n        }\r\n    }\r\n\r\n    override fun onDetach() {\r\n        super.onDetach()\r\n        listener = null\r\n    }\r\n\r\n    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {\r\n        super.onViewCreated(view, savedInstanceState)\r\n\r\n        if (arguments != null) {\r\n            pos = requireArguments().getInt(\"pos\")\r\n            mode = requireArguments().getInt(\"mode\")\r\n        }\r\n\r\n        Objects.requireNonNull<Window?>(Objects.requireNonNull<Dialog?>(dialog).window)\r\n            .setBackgroundDrawable(\r\n                Color.TRANSPARENT.toDrawable()\r\n            )\r\n\r\n        initView(view)\r\n        Calendar.getInstance()\r\n    }\r\n\r\n    private fun initView(v: View) {\r\n        val mYesButton = v.findViewById<Button>(R.id.button_yes)\r\n        mYesButton.setOnClickListener(this)\r\n        val mNoButton = v.findViewById<Button>(R.id.button_no)\r\n        mNoButton.setOnClickListener(this)\r\n        v.findViewById<TextView?>(R.id.title1)\r\n        mViewDatetimeFromText = v.findViewById<TextView>(R.id.text_view_datetime_from)\r\n        v.findViewById<ImageView?>(R.id.image_view_from)\r\n        val mFromButton = v.findViewById<Button>(R.id.button_from)\r\n        mFromButton.setOnClickListener(this)\r\n        v.findViewById<TextView?>(R.id.title2)\r\n        mViewDatetimeToText = v.findViewById<TextView>(R.id.text_view_datetime_to)\r\n        v.findViewById<ImageView?>(R.id.image_view_to)\r\n        val mToButton = v.findViewById<Button>(R.id.button_to)\r\n        mToButton.setOnClickListener(this)\r\n        mViewDurationText = v.findViewById<TextView>(R.id.text_view_duration)\r\n        mLayoutDurationLinear = v.findViewById<LinearLayout>(R.id.linear_layout_duration)\r\n    }\r\n\r\n    override fun onClick(v: View) {\r\n        val id = v.id\r\n        if (id == R.id.button_yes) {\r\n            if (checkValidSelectedDates()) {\r\n//                    if (DateTimeUtil.isDate1AfterDate2(DateTimeUtil.getCurrentDateTime(), from)){\r\n//                        from = DateTimeUtil.getCurrentDateTime();\r\n//                    }\r\n\r\n                listener!!.saveNewRule(from, to)\r\n                dismiss()\r\n            }\r\n        } else if (id == R.id.button_no) {\r\n            dismiss()\r\n        } else if (id == R.id.button_from) {\r\n            type = 0\r\n            selectDateTime()\r\n        } else if (id == R.id.button_to) {\r\n            type = 1\r\n            selectDateTime()\r\n        }\r\n    }\r\n\r\n    private fun checkValidSelectedDates(): Boolean {\r\n        var ret = true\r\n        if (from.isEmpty() || to.isEmpty()) {\r\n            ret = false\r\n            Toast.makeText(context, \"Error: Invalid select date/time\", Toast.LENGTH_SHORT)\r\n                .show()\r\n        } else if (isDate1AfterDate2(from, to)) {\r\n            ret = false\r\n            Toast.makeText(context, \"Error: Start time is after end time\", Toast.LENGTH_SHORT)\r\n                .show()\r\n        } else if (isDate1AfterDate2(currentDateTime, to) && mode == Constants.MODE_HOMEPAGE) {\r\n            ret = false\r\n            Toast.makeText(context, \"Error: Already expired\", Toast.LENGTH_SHORT).show()\r\n        }\r\n\r\n        return ret\r\n    }\r\n\r\n    private fun selectDateTime() {\r\n        // Initialize\r\n        val dateTimeDialogFragment = newInstance(\r\n            \"Select Date and Time\",\r\n            \"OK\",\r\n            \"Cancel\"\r\n        )\r\n\r\n        // Assign values\r\n        dateTimeDialogFragment.startAtTimeView()\r\n        dateTimeDialogFragment.setHighlightAMPMSelection(true)\r\n\r\n        // Define new day and month format\r\n        try {\r\n            dateTimeDialogFragment.simpleDateMonthAndDayFormat = SimpleDateFormat(\r\n                \"dd MMMM\",\r\n                Locale.getDefault()\r\n            )\r\n        } catch (e: SimpleDateMonthAndDayFormatException) {\r\n            Timber.tag(\"AppInfo\").d(e)\r\n        }\r\n\r\n        // Set listener\r\n        dateTimeDialogFragment.setOnButtonClickListener(object: OnButtonClickListener {\r\n            override fun onPositiveButtonClick(date: Date) {\r\n                // Date is get on positive button click\r\n                // Do something\r\n\r\n                if (type == 0) {\r\n                    from = getDateString(date)\r\n                    //                    if (DateTimeUtil.isDate1AfterDate2(DateTimeUtil.getCurrentDateTime(), from)){\r\n//                        from = DateTimeUtil.getCurrentDateTime();\r\n//                    }\r\n                    mViewDatetimeFromText!!.text = getDateStringAmPm(date)\r\n                } else {\r\n                    to = getDateString(date)\r\n                    mViewDatetimeToText!!.text = getDateStringAmPm(date)\r\n                    if (checkValidSelectedDates()) {\r\n                        mLayoutDurationLinear!!.visibility = View.VISIBLE\r\n                        mViewDurationText!!.text = getDuration(from, to)\r\n                    }\r\n                }\r\n            }\r\n\r\n            override fun onNegativeButtonClick(date: Date?) {\r\n                // Date is get on negative button click\r\n            }\r\n        })\r\n\r\n        // Show\r\n        requireFragmentManager()//todo\r\n        dateTimeDialogFragment.show(requireFragmentManager(), \"dialog_time\")\r\n    }\r\n\r\n    interface DialogListener {\r\n        fun saveNewRule(from: String, to: String)\r\n    }\r\n\r\n\r\n    companion object {\r\n        @JvmStatic fun newInstance(pos: Int, mode: Int): NewRuleDialog {\r\n            val frag = NewRuleDialog()\r\n\r\n            val b = Bundle()\r\n            b.putInt(\"pos\", pos)\r\n\r\n            b.putInt(\"mode\", mode)\r\n\r\n            frag.arguments = b\r\n\r\n            return frag\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/NewRuleDialog.kt b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/NewRuleDialog.kt
+--- a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/NewRuleDialog.kt	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Rules/NewRuleDialog.kt	(date 1747116987663)
+@@ -11,6 +11,7 @@
+ import com.kunzisoft.switchdatetime.SwitchDateTimeDialogFragment.*
+ import com.projects.allnotificationblocker.blockthemall.R
+ import com.projects.allnotificationblocker.blockthemall.Utilities.*
++import com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.currentDate
+ import com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.currentDateTime
+ import com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.getDateString
+ import com.projects.allnotificationblocker.blockthemall.Utilities.DateTimeUtil.getDateStringAmPm
+@@ -129,6 +130,8 @@
+             Toast.makeText(context, "Error: Start time is after end time", Toast.LENGTH_SHORT)
+                 .show()
+         } else if (isDate1AfterDate2(currentDateTime, to) && mode == Constants.MODE_HOMEPAGE) {
++            Toast.makeText(context, currentDateTime, Toast.LENGTH_SHORT).show()
++            Toast.makeText(context, to, Toast.LENGTH_SHORT).show()
+             ret = false
+             Toast.makeText(context, "Error: Already expired", Toast.LENGTH_SHORT).show()
+         }
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml b/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,4 +0,0 @@
+-<changelist name="Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]" date="1746025056087" recycled="true" deleted="true">
+-  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch" />
+-  <option name="DESCRIPTION" value="Uncommitted changes before Update at 30/04/2025 7:57 pm [Default Changelist]" />
+-</changelist>
+\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch b/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,118 +0,0 @@
+-Index: app/version.properties
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>#Thu Apr 24 16:25:37 EET 2025\r\nVERSION_BUILD=4648\r\nVERSION_MAJOR=2\r\nVERSION_MINOR=1\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>ISO-8859-1
+-===================================================================
+-diff --git a/app/version.properties b/app/version.properties
+---- a/app/version.properties	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/app/version.properties	(date 1745948992199)
+-@@ -1,4 +1,4 @@
+--#Thu Apr 24 16:25:37 EET 2025
+--VERSION_BUILD=4648
+-+#Tue Apr 29 22:49:52 PKT 2025
+-+VERSION_BUILD=4482
+- VERSION_MAJOR=2
+- VERSION_MINOR=1
+-Index: app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>package com.projects.allnotificationblocker.blockthemall.Activities.Home\r\n\r\nimport android.content.*\r\nimport android.os.*\r\nimport android.view.*\r\nimport android.widget.*\r\nimport androidx.appcompat.app.*\r\nimport androidx.viewpager.widget.*\r\nimport com.google.android.material.tabs.*\r\nimport com.google.android.material.tabs.TabLayout.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesManager.Companion.fromJson\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.*\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.ApplicationsFragment.*\r\nimport com.projects.allnotificationblocker.blockthemall.R\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.*\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.Util.loadRulesManager\r\nimport com.projects.allnotificationblocker.blockthemall.data.db.entities.*\r\nimport timber.log.*\r\n\r\nclass ExceptionsActivity: AppCompatActivity(), View.OnClickListener,\r\n    ApplicationsFragmentListener {\r\n    override var rulesManager: RulesManager? = null\r\n    override var exceptions: ArrayList<String?> = ArrayList<String?>()\r\n    var profileString: String? = null\r\n    var tabs: TabLayout? = null\r\n    var sectionsPagerAdapter: SectionsPagerAdapter? = null\r\n    private var mButtonBackImage: ImageButton? = null\r\n\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        setContentView(R.layout.activity_exceptions)\r\n\r\n        profileString = intent.getStringExtra(Constants.PARAM_SELECTED_PROFILE)\r\n        if (profileString == null) {\r\n            rulesManager = RulesManager()\r\n        } else if (profileString!!.isEmpty()) {\r\n            Timber.tag(\"AppInfo\").d(\"profileString == null || profileString.isEmpty()\")\r\n            rulesManager = loadRulesManager()\r\n        } else {\r\n            Timber.tag(\"AppInfo\").d(\"profileString: %s\", profileString)\r\n            val p = Profile.fromJson(profileString)\r\n            rulesManager = fromJson(p.rules)\r\n        }\r\n\r\n        Timber.tag(\"AppInfo\").d(\"exceptions.size: %d\", exceptions.size)\r\n        for (i in exceptions.indices) {\r\n            Timber.tag(\"AppInfo\").d(\"Exception: %s\", exceptions.get(i))\r\n        }\r\n        rulesManager!!.logAllRules()\r\n\r\n        exceptions.clear()\r\n        exceptions.addAll(rulesManager!!.exceptions)\r\n\r\n        initView()\r\n    }\r\n\r\n    private fun initView() {\r\n        sectionsPagerAdapter =\r\n            SectionsPagerAdapter(this, supportFragmentManager, Constants.MODE_EXCEPTIONS)\r\n        tabs = findViewById<TabLayout>(R.id.tabs)\r\n        val mPagerView = findViewById<ViewPager>(R.id.view_pager)\r\n        mPagerView.adapter = sectionsPagerAdapter\r\n        tabs!!.setupWithViewPager(mPagerView)\r\n\r\n        val mSelectButton = findViewById<Button>(R.id.button_select)\r\n        mSelectButton.setOnClickListener(this)\r\n\r\n\r\n        // Iterate over all tabs and set the custom view\r\n        for (i in 0..<tabs!!.tabCount) {\r\n            val tab = tabs!!.getTabAt(i)\r\n            tab!!.customView = sectionsPagerAdapter!!.getTabView(i)\r\n        }\r\n\r\n        sectionsPagerAdapter!!.updateBackground(tabs!!.getTabAt(0)!!, 0, 0)\r\n\r\n\r\n        tabs!!.addOnTabSelectedListener(object: OnTabSelectedListener {\r\n            override fun onTabSelected(tab: Tab?) {\r\n                // Iterate over all tabs and set the custom view\r\n                for (i in 0..<tabs!!.tabCount) {\r\n                    val tab1 = tabs!!.getTabAt(i)\r\n\r\n                    sectionsPagerAdapter!!.updateBackground(\r\n                        tab1!!,\r\n                        i,\r\n                        tabs!!.selectedTabPosition\r\n                    )\r\n                }\r\n            }\r\n\r\n            override fun onTabUnselected(tab: Tab?) {\r\n            }\r\n\r\n            override fun onTabReselected(tab: Tab?) {\r\n            }\r\n        })\r\n\r\n\r\n        //  Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);\r\n        mButtonBackImage = findViewById<ImageButton>(R.id.image_button_back)\r\n        mButtonBackImage!!.setOnClickListener(this)\r\n    }\r\n\r\n    override fun onOptionsItemSelected(item: MenuItem): Boolean {\r\n        if (item.itemId == android.R.id.home) { //finish();\r\n            onBackPressed()\r\n        }\r\n        return true\r\n    }\r\n\r\n    override fun onBackPressed() {\r\n        //Execute your code here\r\n        super.onBackPressed()\r\n        setResult(RESULT_CANCELED)\r\n        finish()\r\n    }\r\n\r\n    override fun onClick(v: View) {\r\n        if (v.id == R.id.button_select) {\r\n            val intent = Intent()\r\n            intent.putStringArrayListExtra(Constants.PARAM_EXCEPTIONS, exceptions)\r\n            setResult(RESULT_OK, intent)\r\n            finish()\r\n        }\r\n\r\n        if (v.id == R.id.image_button_back) {\r\n            onBackPressed()\r\n        }\r\n    }\r\n\r\n    override fun selectApp(appInfo: AppInfo) {\r\n        exceptions.add(appInfo.packageName)\r\n    }\r\n\r\n    override fun unselectApp(appInfo: AppInfo) {\r\n        exceptions.remove(appInfo.packageName)\r\n    }\r\n\r\n\r\n    override fun refreshHome() {\r\n    }\r\n}\r\n\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+---- a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(date 1745516618133)
+-@@ -21,7 +21,7 @@
+- class ExceptionsActivity: AppCompatActivity(), View.OnClickListener,
+-     ApplicationsFragmentListener {
+-     override var rulesManager: RulesManager? = null
+--    override var exceptions: ArrayList<String?> = ArrayList<String?>()
+-+    override var exceptions: ArrayList<String?> = ArrayList()
+-     var profileString: String? = null
+-     var tabs: TabLayout? = null
+-     var sectionsPagerAdapter: SectionsPagerAdapter? = null
+-Index: .idea/gradle.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"GradleMigrationSettings\" migrationVersion=\"1\" />\r\n  <component name=\"GradleSettings\">\r\n    <option name=\"linkedExternalProjectsSettings\">\r\n      <GradleProjectSettings>\r\n        <option name=\"testRunner\" value=\"CHOOSE_PER_TEST\" />\r\n        <option name=\"externalProjectPath\" value=\"$PROJECT_DIR$\" />\r\n        <option name=\"gradleJvm\" value=\"#JAVA_HOME\" />\r\n        <option name=\"modules\">\r\n          <set>\r\n            <option value=\"$PROJECT_DIR$\" />\r\n            <option value=\"$PROJECT_DIR$/app\" />\r\n          </set>\r\n        </option>\r\n      </GradleProjectSettings>\r\n    </option>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/gradle.xml b/.idea/gradle.xml
+---- a/.idea/gradle.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/gradle.xml	(date 1745528589021)
+-@@ -6,7 +6,7 @@
+-       <GradleProjectSettings>
+-         <option name="testRunner" value="CHOOSE_PER_TEST" />
+-         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+--        <option name="gradleJvm" value="#JAVA_HOME" />
+-+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
+-         <option name="modules">
+-           <set>
+-             <option value="$PROJECT_DIR$" />
+-Index: .idea/deploymentTargetSelector.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-04-19T10:32:12.215480700Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\Khale\\.android\\avd\\Pixel_4_API_33.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+---- a/.idea/deploymentTargetSelector.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/deploymentTargetSelector.xml	(date 1745537241057)
+-@@ -4,10 +4,10 @@
+-     <selectionStates>
+-       <SelectionState runConfigName="app">
+-         <option name="selectionMode" value="DROPDOWN" />
+--        <DropdownSelection timestamp="2025-04-19T10:32:12.215480700Z">
+-+        <DropdownSelection timestamp="2025-04-24T23:25:28.996928400Z">
+-           <Target type="DEFAULT_BOOT">
+-             <handle>
+--              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Khale\.android\avd\Pixel_4_API_33.avd" />
+-+              <DeviceId pluginId="PhysicalDevice" identifier="serial=R5CNC08BL4W" />
+-             </handle>
+-           </Target>
+-         </DropdownSelection>
+-Index: .idea/misc.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CMakeSettings\">\r\n    <configurations>\r\n      <configuration PROFILE_NAME=\"Debug\" CONFIG_NAME=\"Debug\" />\r\n    </configurations>\r\n  </component>\r\n  <component name=\"JavadocGenerationManager\">\r\n    <option name=\"OUTPUT_DIRECTORY\" value=\"$USER_HOME$/Desktop/JavaDoc\" />\r\n  </component>\r\n  <component name=\"ProjectInspectionProfilesVisibleTreeState\">\r\n    <entry key=\"Project Default\">\r\n      <profile-state>\r\n        <expanded-state>\r\n          <State>\r\n            <id />\r\n          </State>\r\n          <State>\r\n            <id>Android</id>\r\n          </State>\r\n          <State>\r\n            <id>CorrectnessLintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Java</id>\r\n          </State>\r\n          <State>\r\n            <id>LintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Probable bugsJava</id>\r\n          </State>\r\n          <State>\r\n            <id>RELAX NG</id>\r\n          </State>\r\n        </expanded-state>\r\n      </profile-state>\r\n    </entry>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_17\" default=\"true\" project-jdk-name=\"temurin-17\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/misc.xml b/.idea/misc.xml
+---- a/.idea/misc.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/misc.xml	(date 1745528589003)
+-@@ -37,7 +37,7 @@
+-       </profile-state>
+-     </entry>
+-   </component>
+--  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="temurin-17" project-jdk-type="JavaSDK">
+-+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="jbr-21" project-jdk-type="JavaSDK">
+-     <output url="file://$PROJECT_DIR$/build/classes" />
+-   </component>
+-   <component name="ProjectType">
+-Index: .idea/compiler.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <bytecodeTargetLevel target=\"21\">\r\n      <module name=\"BlockThatCall.app\" target=\"17\" />\r\n    </bytecodeTargetLevel>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+---- a/.idea/compiler.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/compiler.xml	(date 1745528589011)
+-@@ -1,8 +1,6 @@
+- <?xml version="1.0" encoding="UTF-8"?>
+- <project version="4">
+-   <component name="CompilerConfiguration">
+--    <bytecodeTargetLevel target="21">
+--      <module name="BlockThatCall.app" target="17" />
+--    </bytecodeTargetLevel>
+-+    <bytecodeTargetLevel target="21" />
+-   </component>
+- </project>
+-\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml b/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,4 +0,0 @@
+-<changelist name="Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]" date="1745949105005" recycled="true" deleted="true">
+-  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch" />
+-  <option name="DESCRIPTION" value="Uncommitted changes before Update at 29/04/2025 10:51 pm [Default Changelist]" />
+-</changelist>
+\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch b/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,118 +0,0 @@
+-Index: app/version.properties
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>#Tue Apr 29 20:42:17 EEST 2025\r\nVERSION_BUILD=4698\r\nVERSION_MAJOR=2\r\nVERSION_MINOR=1\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>ISO-8859-1
+-===================================================================
+-diff --git a/app/version.properties b/app/version.properties
+---- a/app/version.properties	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/app/version.properties	(date 1746024971109)
+-@@ -1,4 +1,4 @@
+--#Tue Apr 29 20:42:17 EEST 2025
+--VERSION_BUILD=4698
+-+#Wed Apr 30 19:56:11 PKT 2025
+-+VERSION_BUILD=4658
+- VERSION_MAJOR=2
+- VERSION_MINOR=1
+-Index: app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>package com.projects.allnotificationblocker.blockthemall.Activities.Home\r\n\r\nimport android.content.*\r\nimport android.os.*\r\nimport android.view.*\r\nimport android.widget.*\r\nimport androidx.appcompat.app.*\r\nimport androidx.viewpager.widget.*\r\nimport com.google.android.material.tabs.*\r\nimport com.google.android.material.tabs.TabLayout.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesManager.Companion.fromJson\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.*\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.ApplicationsFragment.*\r\nimport com.projects.allnotificationblocker.blockthemall.R\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.*\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.Util.loadRulesManager\r\nimport com.projects.allnotificationblocker.blockthemall.data.db.entities.*\r\nimport timber.log.*\r\n\r\nclass ExceptionsActivity: AppCompatActivity(), View.OnClickListener,\r\n    ApplicationsFragmentListener {\r\n    override var rulesManager: RulesManager? = null\r\n    override var exceptions: ArrayList<String?> = ArrayList<String?>()\r\n    var profileString: String? = null\r\n    var tabs: TabLayout? = null\r\n    var sectionsPagerAdapter: SectionsPagerAdapter? = null\r\n    private var mButtonBackImage: ImageButton? = null\r\n\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        setContentView(R.layout.activity_exceptions)\r\n\r\n        profileString = intent.getStringExtra(Constants.PARAM_SELECTED_PROFILE)\r\n        if (profileString == null) {\r\n            rulesManager = RulesManager()\r\n        } else if (profileString!!.isEmpty()) {\r\n            Timber.tag(\"AppInfo\").d(\"profileString == null || profileString.isEmpty()\")\r\n            rulesManager = loadRulesManager()\r\n        } else {\r\n            Timber.tag(\"AppInfo\").d(\"profileString: %s\", profileString)\r\n            val p = Profile.fromJson(profileString)\r\n            rulesManager = fromJson(p.rules)\r\n        }\r\n\r\n        Timber.tag(\"AppInfo\").d(\"exceptions.size: %d\", exceptions.size)\r\n        for (i in exceptions.indices) {\r\n            Timber.tag(\"AppInfo\").d(\"Exception: %s\", exceptions.get(i))\r\n        }\r\n        rulesManager!!.logAllRules()\r\n\r\n        exceptions.clear()\r\n        exceptions.addAll(rulesManager!!.exceptions)\r\n\r\n        initView()\r\n    }\r\n\r\n    private fun initView() {\r\n        sectionsPagerAdapter =\r\n            SectionsPagerAdapter(this, supportFragmentManager, Constants.MODE_EXCEPTIONS)\r\n        tabs = findViewById<TabLayout>(R.id.tabs)\r\n        val mPagerView = findViewById<ViewPager>(R.id.view_pager)\r\n        mPagerView.adapter = sectionsPagerAdapter\r\n        tabs!!.setupWithViewPager(mPagerView)\r\n\r\n        val mSelectButton = findViewById<Button>(R.id.button_select)\r\n        mSelectButton.setOnClickListener(this)\r\n\r\n\r\n        // Iterate over all tabs and set the custom view\r\n        for (i in 0..<tabs!!.tabCount) {\r\n            val tab = tabs!!.getTabAt(i)\r\n            tab!!.customView = sectionsPagerAdapter!!.getTabView(i)\r\n        }\r\n\r\n        sectionsPagerAdapter!!.updateBackground(tabs!!.getTabAt(0)!!, 0, 0)\r\n\r\n\r\n        tabs!!.addOnTabSelectedListener(object: OnTabSelectedListener {\r\n            override fun onTabSelected(tab: Tab?) {\r\n                // Iterate over all tabs and set the custom view\r\n                for (i in 0..<tabs!!.tabCount) {\r\n                    val tab1 = tabs!!.getTabAt(i)\r\n\r\n                    sectionsPagerAdapter!!.updateBackground(\r\n                        tab1!!,\r\n                        i,\r\n                        tabs!!.selectedTabPosition\r\n                    )\r\n                }\r\n            }\r\n\r\n            override fun onTabUnselected(tab: Tab?) {\r\n            }\r\n\r\n            override fun onTabReselected(tab: Tab?) {\r\n            }\r\n        })\r\n\r\n\r\n        //  Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);\r\n        mButtonBackImage = findViewById<ImageButton>(R.id.image_button_back)\r\n        mButtonBackImage!!.setOnClickListener(this)\r\n    }\r\n\r\n    override fun onOptionsItemSelected(item: MenuItem): Boolean {\r\n        if (item.itemId == android.R.id.home) { //finish();\r\n            onBackPressed()\r\n        }\r\n        return true\r\n    }\r\n\r\n    override fun onBackPressed() {\r\n        //Execute your code here\r\n        super.onBackPressed()\r\n        setResult(RESULT_CANCELED)\r\n        finish()\r\n    }\r\n\r\n    override fun onClick(v: View) {\r\n        if (v.id == R.id.button_select) {\r\n            val intent = Intent()\r\n            intent.putStringArrayListExtra(Constants.PARAM_EXCEPTIONS, exceptions)\r\n            setResult(RESULT_OK, intent)\r\n            finish()\r\n        }\r\n\r\n        if (v.id == R.id.image_button_back) {\r\n            onBackPressed()\r\n        }\r\n    }\r\n\r\n    override fun selectApp(appInfo: AppInfo) {\r\n        exceptions.add(appInfo.packageName)\r\n    }\r\n\r\n    override fun unselectApp(appInfo: AppInfo) {\r\n        exceptions.remove(appInfo.packageName)\r\n    }\r\n\r\n\r\n    override fun refreshHome() {\r\n    }\r\n}\r\n\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+---- a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(date 1745949104941)
+-@@ -21,7 +21,7 @@
+- class ExceptionsActivity: AppCompatActivity(), View.OnClickListener,
+-     ApplicationsFragmentListener {
+-     override var rulesManager: RulesManager? = null
+--    override var exceptions: ArrayList<String?> = ArrayList<String?>()
+-+    override var exceptions: ArrayList<String?> = ArrayList()
+-     var profileString: String? = null
+-     var tabs: TabLayout? = null
+-     var sectionsPagerAdapter: SectionsPagerAdapter? = null
+-Index: .idea/gradle.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"GradleMigrationSettings\" migrationVersion=\"1\" />\r\n  <component name=\"GradleSettings\">\r\n    <option name=\"linkedExternalProjectsSettings\">\r\n      <GradleProjectSettings>\r\n        <option name=\"testRunner\" value=\"CHOOSE_PER_TEST\" />\r\n        <option name=\"externalProjectPath\" value=\"$PROJECT_DIR$\" />\r\n        <option name=\"gradleJvm\" value=\"#JAVA_HOME\" />\r\n        <option name=\"modules\">\r\n          <set>\r\n            <option value=\"$PROJECT_DIR$\" />\r\n            <option value=\"$PROJECT_DIR$/app\" />\r\n          </set>\r\n        </option>\r\n      </GradleProjectSettings>\r\n    </option>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/gradle.xml b/.idea/gradle.xml
+---- a/.idea/gradle.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/gradle.xml	(date 1745949104952)
+-@@ -6,7 +6,7 @@
+-       <GradleProjectSettings>
+-         <option name="testRunner" value="CHOOSE_PER_TEST" />
+-         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+--        <option name="gradleJvm" value="#JAVA_HOME" />
+-+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
+-         <option name="modules">
+-           <set>
+-             <option value="$PROJECT_DIR$" />
+-Index: .idea/deploymentTargetSelector.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-04-19T10:32:12.215480700Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\Khale\\.android\\avd\\Pixel_4_API_33.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+---- a/.idea/deploymentTargetSelector.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/deploymentTargetSelector.xml	(date 1745949104957)
+-@@ -4,10 +4,10 @@
+-     <selectionStates>
+-       <SelectionState runConfigName="app">
+-         <option name="selectionMode" value="DROPDOWN" />
+--        <DropdownSelection timestamp="2025-04-19T10:32:12.215480700Z">
+-+        <DropdownSelection timestamp="2025-04-24T23:25:28.996928400Z">
+-           <Target type="DEFAULT_BOOT">
+-             <handle>
+--              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Khale\.android\avd\Pixel_4_API_33.avd" />
+-+              <DeviceId pluginId="PhysicalDevice" identifier="serial=R5CNC08BL4W" />
+-             </handle>
+-           </Target>
+-         </DropdownSelection>
+-Index: .idea/misc.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><project version=\"4\">\r\n  <component name=\"CMakeSettings\">\r\n    <configurations>\r\n      <configuration PROFILE_NAME=\"Debug\" CONFIG_NAME=\"Debug\" />\r\n    </configurations>\r\n  </component>\r\n  <component name=\"JavadocGenerationManager\">\r\n    <option name=\"OUTPUT_DIRECTORY\" value=\"$USER_HOME$/Desktop/JavaDoc\" />\r\n  </component>\r\n  <component name=\"ProjectInspectionProfilesVisibleTreeState\">\r\n    <entry key=\"Project Default\">\r\n      <profile-state>\r\n        <expanded-state>\r\n          <State>\r\n            <id />\r\n          </State>\r\n          <State>\r\n            <id>Android</id>\r\n          </State>\r\n          <State>\r\n            <id>CorrectnessLintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Java</id>\r\n          </State>\r\n          <State>\r\n            <id>LintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Probable bugsJava</id>\r\n          </State>\r\n          <State>\r\n            <id>RELAX NG</id>\r\n          </State>\r\n        </expanded-state>\r\n      </profile-state>\r\n    </entry>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_17\" default=\"true\" project-jdk-name=\"temurin-17\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/misc.xml b/.idea/misc.xml
+---- a/.idea/misc.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/misc.xml	(date 1745950197209)
+-@@ -36,7 +36,7 @@
+-       </profile-state>
+-     </entry>
+-   </component>
+--  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="temurin-17" project-jdk-type="JavaSDK">
+-+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="jbr-21" project-jdk-type="JavaSDK">
+-     <output url="file://$PROJECT_DIR$/build/classes" />
+-   </component>
+-   <component name="ProjectType">
+-Index: .idea/compiler.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <bytecodeTargetLevel target=\"21\">\r\n      <module name=\"BlockThatCall.app\" target=\"17\" />\r\n    </bytecodeTargetLevel>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+---- a/.idea/compiler.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/compiler.xml	(date 1745949104968)
+-@@ -1,8 +1,6 @@
+- <?xml version="1.0" encoding="UTF-8"?>
+- <project version="4">
+-   <component name="CompilerConfiguration">
+--    <bytecodeTargetLevel target="21">
+--      <module name="BlockThatCall.app" target="17" />
+--    </bytecodeTargetLevel>
+-+    <bytecodeTargetLevel target="21" />
+-   </component>
+- </project>
+-\ No newline at end of file
+Index: app/version.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#Fri May 09 22:54:51 EEST 2025\r\nVERSION_BUILD=4868\r\nVERSION_MAJOR=2\r\nVERSION_MINOR=1\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/app/version.properties b/app/version.properties
+--- a/app/version.properties	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/app/version.properties	(date 1747329273231)
+@@ -1,4 +1,4 @@
+-#Fri May 09 22:54:51 EEST 2025
+-VERSION_BUILD=4868
++#Thu May 15 22:14:33 PKT 2025
++VERSION_BUILD=4860
+ VERSION_MAJOR=2
+ VERSION_MINOR=1
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\r\n    <string name=\"app_name\">All Notification Blocker</string>\r\n\r\n    <string name=\"notifications\">Notifications</string>\r\n    <string name=\"applications\">Applications</string>\r\n    <string name=\"block_all_notifications\">Block All Notifications</string>\r\n    <string name=\"loading\">Loading</string>\r\n    <string name=\"channel_description\">channel_description</string>\r\n    <string name=\"ok\">OK</string>\r\n\r\n    <string name=\"notification_access_permission_is_required\">Notification access permission is required. The settings window will open now so you can enable the required permission</string>\r\n    <string name=\"cancel\">Cancel</string>\r\n    <string name=\"are_you_sure_remove_rule\">Are you sure you want to remove this rule?</string>\r\n    <string name=\"custom_rules\">Custom Rules</string>\r\n    <string name=\"contacts\">Contacts</string>\r\n    <string name=\"are_you_sure_call\">Are you sure you want to call</string>\r\n    <string name=\"clear_notifications\">Clear Notifications</string>\r\n    <string name=\"exit\">Exit</string>\r\n    <string name=\"are_you_sure_clear_notifications\">Are you sure you want to clear notifications?</string>\r\n    <string name=\"are_you_sure_exit\">Are you sure you want to exit app? All stored notifications will be lost</string>\r\n    <string name=\"scheduled_rules\">Schedules Rules</string>\r\n    <string name=\"no_contacts\">No Contacts</string>\r\n    <string name=\"no_apps\">No Applications</string>\r\n    <string name=\"search\">Search</string>\r\n    <string name=\"blocks_all_notifications_and_incoming_calls\">Blocks all notifications and incoming calls</string>\r\n    <string name=\"app_name1\">App Name</string>\r\n    <string name=\"remove\">Remove</string>\r\n    <string name=\"confirm\">Confirm</string>\r\n    <string name=\"review\">Review</string>\r\n    <string name=\"description_for_the_message\">Description for the message</string>\r\n    <string name=\"from\">From</string>\r\n    <string name=\"to\">To</string>\r\n    <string name=\"app_rules\">App Rules</string>\r\n    <string name=\"contact_number\">Contact Number</string>\r\n    <string name=\"contact_name\">Contact Name</string>\r\n    <string name=\"contact_rules\">Contact Rules</string>\r\n    <string name=\"call\">Call</string>\r\n    <string name=\"timestamp\">Timestamp</string>\r\n    <string name=\"title\">Title</string>\r\n    <string name=\"subtext\">Subtext</string>\r\n    <string name=\"rule_type\">Rule Type</string>\r\n    <string name=\"rule_from\">Rule From</string>\r\n    <string name=\"status\">Status</string>\r\n    <string name=\"rule_to\">Rule To</string>\r\n    <string name=\"more\">More</string>\r\n    <string name=\"test\">Test</string>\r\n    <string name=\"app_logo\">app logo</string>\r\n    <string name=\"more_button\">more button</string>\r\n    <string name=\"todo\">TODO</string>\r\n    <string name=\"custom_block_rules\">Custom Block Rules</string>\r\n    <string name=\"always_block\">Always Block</string>\r\n    <string name=\"no_rules_applied\">No rules applied</string>\r\n    <string name=\"block_all\">Block All</string>\r\n    <string name=\"inactive\">Inactive</string>\r\n    <string name=\"active\">Active</string>\r\n    <string name=\"expired\">Expired</string>\r\n    <string name=\"notifications_and_calls\">Notifications and Calls</string>\r\n    <string name=\"phone\">Phone</string>\r\n    <string name=\"dialing\">Dialing</string>\r\n    <string name=\"ongoing_call\">Ongoing call</string>\r\n    <string name=\"incoming_call\">Incoming call</string>\r\n    <string name=\"android_system\">Android System</string>\r\n    <string name=\"system_ui\">System UI</string>\r\n    <string name=\"notifications_access\">Notifications Access</string>\r\n    <string name=\"no_blocked_notifications\">No Blocked Notifications</string>\r\n    <string name=\"text\">Text</string>\r\n    <string name=\"exceptions\">Exceptions</string>\r\n    <string name=\"save_profile\">Save Profile</string>\r\n    <string name=\"enter_profile_name\">Enter profile name</string>\r\n    <string name=\"title_activity_select_profile\">Select Profile</string>\r\n\r\n    <string name=\"are_you_sure_apply_profile\">Are you sure you want to apply profile: %1$s?</string>\r\n    <string name=\"enter_profile_description\">Enter profile description</string>\r\n    <string name=\"error_empty_profile_name\">Error: empty profile name</string>\r\n    <string name=\"are_you_sure_delete_profile\">Are you sure you want to delete profile: %1$s?</string>\r\n    <string name=\"profiles\">Profiles</string>\r\n    <string name=\"are_you_sure_overwrite_profile\">Are you sure you want to overwrite profile: %1$s?</string>\r\n    <string name=\"are_you_sure_disable_profile\">Are you sure you want to disable the current rules?</string>\r\n    <string name=\"reset_rules\">Reset Rules</string>\r\n\r\n\r\n    <string name=\"ads_app_id\">ca-app-pub-8958235011621977~8212936599</string>\r\n    <string name=\"ad_view_unit_id\">ca-app-pub-8958235011621977/2241498573</string>\r\n    <string name=\"ad_fullscreen\">ca-app-pub-2635111446108281/3412203760</string>\r\n    <string name=\"privacy_policy\">Privacy Policy</string>\r\n    <string name=\"select\">Select</string>\r\n    <string name=\"new_message\">New Message!</string>\r\n    <string name=\"notification_image\">notification image</string>\r\n    <string name=\"expand_to_show\">Expand to show! Expand to show! Expand to show!Expand to show!Expand to show!</string>\r\n    <string name=\"select_end_date_time\">Select end date/time</string>\r\n    <string name=\"duration\">Duration</string>\r\n    <string name=\"coming_soon\">Coming soon</string>\r\n    <string name=\"all_notifications_blocked\">All Notifications \\nBlocked</string>\r\n    <string name=\"status_call\">status call</string>\r\n    <string name=\"history\">\\nHistory</string>\r\n    <string name=\"user_image\">user image</string>\r\n    <string name=\"description\">Description</string>\r\n    <string name=\"edit\">Edit</string>\r\n    <string name=\"apply\">Apply</string>\r\n    <string name=\"delete\">Delete</string>\r\n    <string name=\"_2_items\">2 items</string>\r\n    <string name=\"block_all_notifications_calls\">Block All Notifications/Calls</string>\r\n    <string name=\"unblock_all_notifications_calls\">Unblock All Notifications/Calls</string>\r\n    <string name=\"normalappnotification\">\"[normalAppNotification] \"</string>\r\n    <string name=\"open_in\">\"Open in \"</string>\r\n    <string name=\"no_profiles\">No Profiles</string>\r\n    <string name=\"no_notifications_blocked\">No Notifications\\nBlocked</string>\r\n    <string name=\"some_notifications_blocked\">Some Notifications\\nBlocked</string>\r\n    <string name=\"all_notifications_calls_blocked_schedule\">All Notifications/Calls Blocked (Schedule)</string>\r\n    <string name=\"all_notifications_blocked_schedule\">All Notifications\\nBlocked(Schedule)</string>\r\n    <string name=\"all_calls_blocked_schedule\">All Calls\\nBlocked(Schedule)</string>\r\n    <string name=\"all_notifications_calls_blocked\">All Notifications/Calls Blocked</string>\r\n    <string name=\"all_calls_blocked\">All Calls\\n Blocked</string>\r\n    <string name=\"app_not_found\">app not found</string>\r\n    <string name=\"about\">about</string>\r\n    <string name=\"developer_name\" >khaled hawwas</string>\r\n    <string name=\"by\">by</string>\r\n    <string name=\"contact_via_gmail\" >contact via gmail</string>\r\n    <string name=\"github_profile\">Github profile</string>\r\n    <string name=\"linkedin_profile\" >Linkedin profile</string>\r\n    <string name=\"fell_free_if_you_have_any_suggestions_or_found_any_bugs\">fell free if you have any suggestions or found any bugs</string>\r\n\r\n</resources>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+--- a/app/src/main/res/values/strings.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/app/src/main/res/values/strings.xml	(date 1747143634116)
+@@ -119,5 +119,8 @@
+     <string name="github_profile">Github profile</string>
+     <string name="linkedin_profile" >Linkedin profile</string>
+     <string name="fell_free_if_you_have_any_suggestions_or_found_any_bugs">fell free if you have any suggestions or found any bugs</string>
++    <string name="repeat">Repeat</string>
++    <string name="daily">Daily</string>
++    <string name="weekday">Weekday</string>
+ 
+ </resources>
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"VcsDirectoryMappings\">\r\n    <mapping directory=\"$PROJECT_DIR$\" vcs=\"Git\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+--- a/.idea/vcs.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/.idea/vcs.xml	(date 1746824091986)
+@@ -2,5 +2,6 @@
+ <project version="4">
+   <component name="VcsDirectoryMappings">
+     <mapping directory="$PROJECT_DIR$" vcs="Git" />
++    <mapping directory="$PROJECT_DIR$/bkp" vcs="Git" />
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-05-02T19:43:51.856983900Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"PhysicalDevice\" identifier=\"serial=R5CNC08BL4W\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/.idea/deploymentTargetSelector.xml	(date 1746865504115)
+@@ -4,10 +4,10 @@
+     <selectionStates>
+       <SelectionState runConfigName="app">
+         <option name="selectionMode" value="DROPDOWN" />
+-        <DropdownSelection timestamp="2025-05-02T19:43:51.856983900Z">
++        <DropdownSelection timestamp="2025-05-10T08:13:53.285734900Z">
+           <Target type="DEFAULT_BOOT">
+             <handle>
+-              <DeviceId pluginId="PhysicalDevice" identifier="serial=R5CNC08BL4W" />
++              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Sourcecode\.android\avd\Medium_Phone.avd" />
+             </handle>
+           </Target>
+         </DropdownSelection>
+Index: app/src/main/res/values-ar/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\r\n    <string name=\"app_name\">مانع جميع الأشعارات</string>\r\n\r\n    <string name=\"notifications\">الإشعارات</string>\r\n    <string name=\"applications\">التطبيقات</string>\r\n    <string name=\"block_all_notifications\">حظر جميع الإشعارات</string>\r\n    <string name=\"loading\">جارٍ التحميل</string>\r\n    <string name=\"channel_description\">وصف القناة</string>\r\n    <string name=\"ok\">موافق</string>\r\n    <string name=\"notification_access_permission_is_required\">مطلوب إذن الوصول إلى الإشعارات. سيتم فتح نافذة الإعدادات الآن لتمكين الإذن المطلوب</string>\r\n    <string name=\"cancel\">إلغاء</string>\r\n    <string name=\"are_you_sure_remove_rule\">هل أنت متأكد أنك تريد إزالة هذه القاعدة؟</string>\r\n    <string name=\"custom_rules\">قواعد مخصصة</string>\r\n    <string name=\"contacts\">جهات الاتصال</string>\r\n    <string name=\"are_you_sure_call\">هل أنت متأكد أنك تريد الاتصال</string>\r\n    <string name=\"clear_notifications\">مسح الإشعارات</string>\r\n    <string name=\"exit\">خروج</string>\r\n    <string name=\"are_you_sure_clear_notifications\">هل أنت متأكد أنك تريد مسح الإشعارات؟</string>\r\n    <string name=\"are_you_sure_exit\">هل أنت متأكد أنك تريد الخروج من التطبيق؟ جميع الإشعارات المخزنة ستفقد</string>\r\n    <string name=\"scheduled_rules\">قواعد مجدولة</string>\r\n    <string name=\"no_contacts\">لا توجد جهات اتصال</string>\r\n    <string name=\"no_apps\">لا توجد تطبيقات</string>\r\n    <string name=\"search\">بحث</string>\r\n    <string name=\"blocks_all_notifications_and_incoming_calls\">يحظر جميع الإشعارات والمكالمات الواردة</string>\r\n    <string name=\"app_name1\">اسم التطبيق</string>\r\n    <string name=\"remove\">إزالة</string>\r\n    <string name=\"confirm\">تأكيد</string>\r\n    <string name=\"review\">مراجعة</string>\r\n    <string name=\"description_for_the_message\">وصف الرسالة</string>\r\n    <string name=\"from\">من</string>\r\n    <string name=\"to\">إلى</string>\r\n    <string name=\"app_rules\">قواعد التطبيق</string>\r\n    <string name=\"contact_number\">رقم جهة الاتصال</string>\r\n    <string name=\"contact_name\">اسم جهة الاتصال</string>\r\n    <string name=\"contact_rules\">قواعد جهة الاتصال</string>\r\n    <string name=\"call\">اتصال</string>\r\n    <string name=\"timestamp\">الطابع الزمني</string>\r\n    <string name=\"title\">العنوان</string>\r\n    <string name=\"subtext\">النص الفرعي</string>\r\n    <string name=\"rule_type\">نوع القاعدة</string>\r\n    <string name=\"rule_from\">القاعدة من</string>\r\n    <string name=\"status\">الحالة</string>\r\n    <string name=\"rule_to\">القاعدة إلى</string>\r\n    <string name=\"more\">المزيد</string>\r\n    <string name=\"test\">اختبار</string>\r\n    <string name=\"app_logo\">شعار التطبيق</string>\r\n    <string name=\"more_button\">زر المزيد</string>\r\n    <string name=\"todo\">مهام</string>\r\n    <string name=\"custom_block_rules\">قواعد حظر مخصصة</string>\r\n    <string name=\"always_block\">حظر دائم</string>\r\n    <string name=\"no_rules_applied\">لم يتم تطبيق أي قواعد</string>\r\n    <string name=\"block_all\">حظر الكل</string>\r\n    <string name=\"inactive\">غير نشط</string>\r\n    <string name=\"active\">نشط</string>\r\n    <string name=\"expired\">منتهي</string>\r\n    <string name=\"notifications_and_calls\">الإشعارات والمكالمات</string>\r\n    <string name=\"phone\">الهاتف</string>\r\n    <string name=\"dialing\">جاري الاتصال</string>\r\n    <string name=\"ongoing_call\">مكالمة جارية</string>\r\n    <string name=\"incoming_call\">مكالمة واردة</string>\r\n    <string name=\"android_system\">نظام أندرويد</string>\r\n    <string name=\"system_ui\">واجهة النظام</string>\r\n    <string name=\"notifications_access\">الوصول إلى الإشعارات</string>\r\n    <string name=\"no_blocked_notifications\">لا توجد إشعارات محظورة</string>\r\n    <string name=\"text\">نص</string>\r\n    <string name=\"exceptions\">استثناءات</string>\r\n    <string name=\"save_profile\">حفظ الملف الشخصي</string>\r\n    <string name=\"enter_profile_name\">أدخل اسم الملف الشخصي</string>\r\n    <string name=\"title_activity_select_profile\">اختيار ملف شخصي</string>\r\n\r\n    <string name=\"are_you_sure_apply_profile\">هل أنت متأكد أنك تريد تطبيق الملف الشخصي: %1$s؟</string>\r\n    <string name=\"enter_profile_description\">أدخل وصف الملف الشخصي</string>\r\n    <string name=\"error_empty_profile_name\">خطأ: اسم الملف الشخصي فارغ</string>\r\n    <string name=\"are_you_sure_delete_profile\">هل أنت متأكد أنك تريد حذف الملف الشخصي: %1$s؟</string>\r\n    <string name=\"profiles\">الملفات الشخصية</string>\r\n    <string name=\"are_you_sure_overwrite_profile\">هل أنت متأكد أنك تريد الكتابة فوق الملف الشخصي: %1$s؟</string>\r\n    <string name=\"are_you_sure_disable_profile\">هل أنت متأكد أنك تريد تعطيل القواعد الحالية؟</string>\r\n    <string name=\"reset_rules\">إعادة تعيين القواعد</string>\r\n\r\n    <string name=\"ads_app_id\">ca-app-pub-8958235011621977~8212936599</string>\r\n    <string name=\"ad_view_unit_id\">ca-app-pub-8958235011621977/2241498573</string>\r\n    <string name=\"ad_fullscreen\">ca-app-pub-2635111446108281/3412203760</string>\r\n    <string name=\"privacy_policy\">سياسة الخصوصية</string>\r\n    <string name=\"select\">اختر</string>\r\n    <string name=\"new_message\">رسالة جديدة!</string>\r\n    <string name=\"notification_image\">صورة الإشعار</string>\r\n    <string name=\"expand_to_show\">انقر للتوسيع! انقر للتوسيع! انقر للتوسيع! انقر للتوسيع! انقر للتوسيع!</string>\r\n    <string name=\"select_end_date_time\">اختر تاريخ/وقت الانتهاء</string>\r\n    <string name=\"duration\">المدة</string>\r\n    <string name=\"coming_soon\">قريبًا</string>\r\n    <string name=\"all_notifications_blocked\">جميع الإشعارات\\nمحظورة</string>\r\n    <string name=\"status_call\">حالة المكالمة</string>\r\n    <string name=\"history\">\\nالسجل</string>\r\n    <string name=\"user_image\">صورة المستخدم</string>\r\n    <string name=\"description\">الوصف</string>\r\n    <string name=\"edit\">تعديل</string>\r\n    <string name=\"apply\">تطبيق</string>\r\n    <string name=\"delete\">حذف</string>\r\n    <string name=\"_2_items\">عنصران</string>\r\n    <string name=\"block_all_notifications_calls\">حظر جميع الإشعارات/المكالمات</string>\r\n    <string name=\"unblock_all_notifications_calls\">إلغاء حظر جميع الإشعارات/المكالمات</string>\r\n    <string name=\"normalappnotification\">\"[إشعار تطبيق عادي] \"</string>\r\n    <string name=\"open_in\">\"افتح في \"</string>\r\n    <string name=\"no_profiles\">لا توجد ملفات شخصية</string>\r\n    <string name=\"no_notifications_blocked\">لا توجد إشعارات\\nمحظورة</string>\r\n    <string name=\"some_notifications_blocked\">بعض الإشعارات\\nمحظورة</string>\r\n    <string name=\"all_notifications_calls_blocked_schedule\">جميع الإشعارات/المكالمات محظورة (حسب الجدول)</string>\r\n    <string name=\"all_notifications_blocked_schedule\">جميع الإشعارات\\nمحظورة (حسب الجدول)</string>\r\n    <string name=\"all_calls_blocked_schedule\">جميع المكالمات\\nمحظورة (حسب الجدول)</string>\r\n    <string name=\"all_notifications_calls_blocked\">جميع الإشعارات/المكالمات محظورة</string>\r\n    <string name=\"all_calls_blocked\">جميع المكالمات\\nمحظورة</string>\r\n    <string name=\"app_not_found\">التطبيق غير موجود</string>\r\n    <string name=\"about\">عن التطبيق</string>\r\n    <string name=\"developer_name\">خالد حواس</string>\r\n    <string name=\"by\">من</string>\r\n    <string name=\"contact_via_gmail\">تواصل عبر الجيميل</string>\r\n    <string name=\"github_profile\">Github</string>\r\n    <string name=\"linkedin_profile\">Linkedin profile</string>\r\n    <string name=\"fell_free_if_you_have_any_suggestions_or_found_any_bugs\">fell free if you have any suggestions or found any bugs</string>\r\n\r\n</resources>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values-ar/strings.xml b/app/src/main/res/values-ar/strings.xml
+--- a/app/src/main/res/values-ar/strings.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/app/src/main/res/values-ar/strings.xml	(date 1747143634123)
+@@ -117,5 +117,7 @@
+     <string name="github_profile">Github</string>
+     <string name="linkedin_profile">Linkedin profile</string>
+     <string name="fell_free_if_you_have_any_suggestions_or_found_any_bugs">fell free if you have any suggestions or found any bugs</string>
+-
++    <string name="repeat">يكرر</string>
++    <string name="daily">يوميًا</string>
++    <string name="weekday">يوم من أيام الأسبوع</string>
+ </resources>
+Index: app/src/main/res/menu/rules_menu.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<menu xmlns:android=\"http://schemas.android.com/apk/res/android\">\r\n    <!--    <item-->\r\n    <!--        android:id=\"@+id/edit\"-->\r\n    <!--        android:title=\"@string/edit\" />-->\r\n    <item\r\n        android:id=\"@+id/remove\"\r\n        android:title=\"@string/remove\" />\r\n</menu>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/menu/rules_menu.xml b/app/src/main/res/menu/rules_menu.xml
+--- a/app/src/main/res/menu/rules_menu.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ b/app/src/main/res/menu/rules_menu.xml	(date 1747143413969)
+@@ -4,6 +4,19 @@
+     <!--        android:id="@+id/edit"-->
+     <!--        android:title="@string/edit" />-->
+     <item
++        android:id="@+id/edit"
++        android:title="@string/edit" />
++    <item
+         android:id="@+id/remove"
+         android:title="@string/remove" />
++    <item
++        android:id="@+id/repeat"
++        android:title="@string/repeat" />
++    <item
++        android:id="@+id/daily"
++        android:title="@string/daily" />
++    <item
++        android:id="@+id/weekday"
++        android:title="@string/weekday" />
++</menu>
+ </menu>
+\ No newline at end of file

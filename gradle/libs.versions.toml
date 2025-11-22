@@ -1,0 +1,102 @@
+[versions]
+agp = "8.9.1"
+
+androidProcesses = "1.1.1"
+androidSwitchdatetimepicker = "2.0"
+appUpdate = "2.1.0"
+billing = "7.1.1"
+cardview = "1.0.0"
+circularimageview = "4.2.0"
+glideCompiler = "4.11.0"
+compilerVersion = "4.8.0"
+constraintlayoutVersion = "2.2.1"
+contacts = "1.1.7"
+org-jetbrains-kotlin-android = "2.1.20"
+
+firebaseAnalytics = "22.4.0"
+firebaseCrashlyticsVersion = "19.4.2"
+gsonVersion = "2.12.1"
+junitJunit = "4.13"
+kotlin = "2.1.10"
+
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+appcompat = "1.7.0"
+kotlinStdlib = "2.1.20"
+kotlinxCoroutines = "1.10.1"
+legacySupportV4 = "1.0.0"
+library = "1.9.0"
+lifecycleExtensions = "2.2.0"
+lifecycleRuntimeKtx = "2.8.7"
+material = "1.12.0"
+
+
+gms = "4.4.2"
+firebaseCrashlytics = "3.0.1"
+
+
+multidex = "1.0.3"
+permissions = "3.8"
+playServicesAds = "24.8.0"
+recyclerview = "1.4.0"
+roomCompiler = "2.7.1"
+roundedimageview = "2.3.0"
+timber = "5.0.1"
+viewanimator = "1.1.0"
+activity = "1.10.1"
+junitJunitVersion = "4.12"
+
+[libraries]
+android-processes = { module = "com.jaredrummler:android-processes", version.ref = "androidProcesses" }
+android-switchdatetimepicker = { module = "com.github.Kunzisoft:Android-SwitchDateTimePicker", version.ref = "androidSwitchdatetimepicker" }
+androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
+androidx-constraintlayout-v221 = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
+androidx-legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupportV4" }
+androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "lifecycleExtensions" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
+app-update = { module = "com.google.android.play:app-update", version.ref = "appUpdate" }
+billing = { module = "com.android.billingclient:billing", version.ref = "billing" }
+circularimageview = { module = "com.mikhaellopez:circularimageview", version.ref = "circularimageview" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glideCompiler" }
+compiler-v480 = { module = "com.github.bumptech.glide:compiler", version.ref = "compilerVersion" }
+contacts = { module = "com.github.tamir7.contacts:contacts", version.ref = "contacts" }
+
+firebase-analytics = { module = "com.google.firebase:firebase-analytics", version.ref = "firebaseAnalytics" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glideCompiler" }
+google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version.ref = "firebaseCrashlyticsVersion" }
+
+gson-v2121 = { module = "com.google.code.gson:gson", version.ref = "gsonVersion" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+junit-v413 = { module = "junit:junit", version.ref = "junitJunit" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+library = { module = "com.pixplicity.easyprefs:library", version.ref = "library" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+multidex = { module = "com.android.support:multidex", version.ref = "multidex" }
+permissions = { module = "com.nabinbhandari.android:permissions", version.ref = "permissions" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
+roundedimageview = { module = "com.makeramen:roundedimageview", version.ref = "roundedimageview" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+viewanimator = { module = "com.github.florent37:viewanimator", version.ref = "viewanimator" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+junit-junit = { group = "junit", name = "junit", version.ref = "junitJunitVersion" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "gms" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+
+
+
+org-jetbrains-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "org-jetbrains-kotlin-android" }

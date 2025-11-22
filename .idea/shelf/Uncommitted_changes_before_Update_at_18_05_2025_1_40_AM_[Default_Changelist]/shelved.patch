@@ -1,0 +1,274 @@
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch b/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,118 +0,0 @@
+-Index: app/version.properties
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>#Thu Apr 24 16:25:37 EET 2025\r\nVERSION_BUILD=4648\r\nVERSION_MAJOR=2\r\nVERSION_MINOR=1\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>ISO-8859-1
+-===================================================================
+-diff --git a/app/version.properties b/app/version.properties
+---- a/app/version.properties	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/app/version.properties	(date 1745948992199)
+-@@ -1,4 +1,4 @@
+--#Thu Apr 24 16:25:37 EET 2025
+--VERSION_BUILD=4648
+-+#Tue Apr 29 22:49:52 PKT 2025
+-+VERSION_BUILD=4482
+- VERSION_MAJOR=2
+- VERSION_MINOR=1
+-Index: app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>package com.projects.allnotificationblocker.blockthemall.Activities.Home\r\n\r\nimport android.content.*\r\nimport android.os.*\r\nimport android.view.*\r\nimport android.widget.*\r\nimport androidx.appcompat.app.*\r\nimport androidx.viewpager.widget.*\r\nimport com.google.android.material.tabs.*\r\nimport com.google.android.material.tabs.TabLayout.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesManager.Companion.fromJson\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.*\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.ApplicationsFragment.*\r\nimport com.projects.allnotificationblocker.blockthemall.R\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.*\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.Util.loadRulesManager\r\nimport com.projects.allnotificationblocker.blockthemall.data.db.entities.*\r\nimport timber.log.*\r\n\r\nclass ExceptionsActivity: AppCompatActivity(), View.OnClickListener,\r\n    ApplicationsFragmentListener {\r\n    override var rulesManager: RulesManager? = null\r\n    override var exceptions: ArrayList<String?> = ArrayList<String?>()\r\n    var profileString: String? = null\r\n    var tabs: TabLayout? = null\r\n    var sectionsPagerAdapter: SectionsPagerAdapter? = null\r\n    private var mButtonBackImage: ImageButton? = null\r\n\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        setContentView(R.layout.activity_exceptions)\r\n\r\n        profileString = intent.getStringExtra(Constants.PARAM_SELECTED_PROFILE)\r\n        if (profileString == null) {\r\n            rulesManager = RulesManager()\r\n        } else if (profileString!!.isEmpty()) {\r\n            Timber.tag(\"AppInfo\").d(\"profileString == null || profileString.isEmpty()\")\r\n            rulesManager = loadRulesManager()\r\n        } else {\r\n            Timber.tag(\"AppInfo\").d(\"profileString: %s\", profileString)\r\n            val p = Profile.fromJson(profileString)\r\n            rulesManager = fromJson(p.rules)\r\n        }\r\n\r\n        Timber.tag(\"AppInfo\").d(\"exceptions.size: %d\", exceptions.size)\r\n        for (i in exceptions.indices) {\r\n            Timber.tag(\"AppInfo\").d(\"Exception: %s\", exceptions.get(i))\r\n        }\r\n        rulesManager!!.logAllRules()\r\n\r\n        exceptions.clear()\r\n        exceptions.addAll(rulesManager!!.exceptions)\r\n\r\n        initView()\r\n    }\r\n\r\n    private fun initView() {\r\n        sectionsPagerAdapter =\r\n            SectionsPagerAdapter(this, supportFragmentManager, Constants.MODE_EXCEPTIONS)\r\n        tabs = findViewById<TabLayout>(R.id.tabs)\r\n        val mPagerView = findViewById<ViewPager>(R.id.view_pager)\r\n        mPagerView.adapter = sectionsPagerAdapter\r\n        tabs!!.setupWithViewPager(mPagerView)\r\n\r\n        val mSelectButton = findViewById<Button>(R.id.button_select)\r\n        mSelectButton.setOnClickListener(this)\r\n\r\n\r\n        // Iterate over all tabs and set the custom view\r\n        for (i in 0..<tabs!!.tabCount) {\r\n            val tab = tabs!!.getTabAt(i)\r\n            tab!!.customView = sectionsPagerAdapter!!.getTabView(i)\r\n        }\r\n\r\n        sectionsPagerAdapter!!.updateBackground(tabs!!.getTabAt(0)!!, 0, 0)\r\n\r\n\r\n        tabs!!.addOnTabSelectedListener(object: OnTabSelectedListener {\r\n            override fun onTabSelected(tab: Tab?) {\r\n                // Iterate over all tabs and set the custom view\r\n                for (i in 0..<tabs!!.tabCount) {\r\n                    val tab1 = tabs!!.getTabAt(i)\r\n\r\n                    sectionsPagerAdapter!!.updateBackground(\r\n                        tab1!!,\r\n                        i,\r\n                        tabs!!.selectedTabPosition\r\n                    )\r\n                }\r\n            }\r\n\r\n            override fun onTabUnselected(tab: Tab?) {\r\n            }\r\n\r\n            override fun onTabReselected(tab: Tab?) {\r\n            }\r\n        })\r\n\r\n\r\n        //  Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);\r\n        mButtonBackImage = findViewById<ImageButton>(R.id.image_button_back)\r\n        mButtonBackImage!!.setOnClickListener(this)\r\n    }\r\n\r\n    override fun onOptionsItemSelected(item: MenuItem): Boolean {\r\n        if (item.itemId == android.R.id.home) { //finish();\r\n            onBackPressed()\r\n        }\r\n        return true\r\n    }\r\n\r\n    override fun onBackPressed() {\r\n        //Execute your code here\r\n        super.onBackPressed()\r\n        setResult(RESULT_CANCELED)\r\n        finish()\r\n    }\r\n\r\n    override fun onClick(v: View) {\r\n        if (v.id == R.id.button_select) {\r\n            val intent = Intent()\r\n            intent.putStringArrayListExtra(Constants.PARAM_EXCEPTIONS, exceptions)\r\n            setResult(RESULT_OK, intent)\r\n            finish()\r\n        }\r\n\r\n        if (v.id == R.id.image_button_back) {\r\n            onBackPressed()\r\n        }\r\n    }\r\n\r\n    override fun selectApp(appInfo: AppInfo) {\r\n        exceptions.add(appInfo.packageName)\r\n    }\r\n\r\n    override fun unselectApp(appInfo: AppInfo) {\r\n        exceptions.remove(appInfo.packageName)\r\n    }\r\n\r\n\r\n    override fun refreshHome() {\r\n    }\r\n}\r\n\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+---- a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(date 1745516618133)
+-@@ -21,7 +21,7 @@
+- class ExceptionsActivity: AppCompatActivity(), View.OnClickListener,
+-     ApplicationsFragmentListener {
+-     override var rulesManager: RulesManager? = null
+--    override var exceptions: ArrayList<String?> = ArrayList<String?>()
+-+    override var exceptions: ArrayList<String?> = ArrayList()
+-     var profileString: String? = null
+-     var tabs: TabLayout? = null
+-     var sectionsPagerAdapter: SectionsPagerAdapter? = null
+-Index: .idea/gradle.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"GradleMigrationSettings\" migrationVersion=\"1\" />\r\n  <component name=\"GradleSettings\">\r\n    <option name=\"linkedExternalProjectsSettings\">\r\n      <GradleProjectSettings>\r\n        <option name=\"testRunner\" value=\"CHOOSE_PER_TEST\" />\r\n        <option name=\"externalProjectPath\" value=\"$PROJECT_DIR$\" />\r\n        <option name=\"gradleJvm\" value=\"#JAVA_HOME\" />\r\n        <option name=\"modules\">\r\n          <set>\r\n            <option value=\"$PROJECT_DIR$\" />\r\n            <option value=\"$PROJECT_DIR$/app\" />\r\n          </set>\r\n        </option>\r\n      </GradleProjectSettings>\r\n    </option>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/gradle.xml b/.idea/gradle.xml
+---- a/.idea/gradle.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/gradle.xml	(date 1745528589021)
+-@@ -6,7 +6,7 @@
+-       <GradleProjectSettings>
+-         <option name="testRunner" value="CHOOSE_PER_TEST" />
+-         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+--        <option name="gradleJvm" value="#JAVA_HOME" />
+-+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
+-         <option name="modules">
+-           <set>
+-             <option value="$PROJECT_DIR$" />
+-Index: .idea/deploymentTargetSelector.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-04-19T10:32:12.215480700Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\Khale\\.android\\avd\\Pixel_4_API_33.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+---- a/.idea/deploymentTargetSelector.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/deploymentTargetSelector.xml	(date 1745537241057)
+-@@ -4,10 +4,10 @@
+-     <selectionStates>
+-       <SelectionState runConfigName="app">
+-         <option name="selectionMode" value="DROPDOWN" />
+--        <DropdownSelection timestamp="2025-04-19T10:32:12.215480700Z">
+-+        <DropdownSelection timestamp="2025-04-24T23:25:28.996928400Z">
+-           <Target type="DEFAULT_BOOT">
+-             <handle>
+--              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Khale\.android\avd\Pixel_4_API_33.avd" />
+-+              <DeviceId pluginId="PhysicalDevice" identifier="serial=R5CNC08BL4W" />
+-             </handle>
+-           </Target>
+-         </DropdownSelection>
+-Index: .idea/misc.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CMakeSettings\">\r\n    <configurations>\r\n      <configuration PROFILE_NAME=\"Debug\" CONFIG_NAME=\"Debug\" />\r\n    </configurations>\r\n  </component>\r\n  <component name=\"JavadocGenerationManager\">\r\n    <option name=\"OUTPUT_DIRECTORY\" value=\"$USER_HOME$/Desktop/JavaDoc\" />\r\n  </component>\r\n  <component name=\"ProjectInspectionProfilesVisibleTreeState\">\r\n    <entry key=\"Project Default\">\r\n      <profile-state>\r\n        <expanded-state>\r\n          <State>\r\n            <id />\r\n          </State>\r\n          <State>\r\n            <id>Android</id>\r\n          </State>\r\n          <State>\r\n            <id>CorrectnessLintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Java</id>\r\n          </State>\r\n          <State>\r\n            <id>LintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Probable bugsJava</id>\r\n          </State>\r\n          <State>\r\n            <id>RELAX NG</id>\r\n          </State>\r\n        </expanded-state>\r\n      </profile-state>\r\n    </entry>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_17\" default=\"true\" project-jdk-name=\"temurin-17\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/misc.xml b/.idea/misc.xml
+---- a/.idea/misc.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/misc.xml	(date 1745528589003)
+-@@ -37,7 +37,7 @@
+-       </profile-state>
+-     </entry>
+-   </component>
+--  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="temurin-17" project-jdk-type="JavaSDK">
+-+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="jbr-21" project-jdk-type="JavaSDK">
+-     <output url="file://$PROJECT_DIR$/build/classes" />
+-   </component>
+-   <component name="ProjectType">
+-Index: .idea/compiler.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <bytecodeTargetLevel target=\"21\">\r\n      <module name=\"BlockThatCall.app\" target=\"17\" />\r\n    </bytecodeTargetLevel>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+---- a/.idea/compiler.xml	(revision dc4f855183c9a20c6bbbb1104ef4c07441cf2aa5)
+-+++ b/.idea/compiler.xml	(date 1745528589011)
+-@@ -1,8 +1,6 @@
+- <?xml version="1.0" encoding="UTF-8"?>
+- <project version="4">
+-   <component name="CompilerConfiguration">
+--    <bytecodeTargetLevel target="21">
+--      <module name="BlockThatCall.app" target="17" />
+--    </bytecodeTargetLevel>
+-+    <bytecodeTargetLevel target="21" />
+-   </component>
+- </project>
+-\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch b/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,118 +0,0 @@
+-Index: app/version.properties
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>#Tue Apr 29 20:42:17 EEST 2025\r\nVERSION_BUILD=4698\r\nVERSION_MAJOR=2\r\nVERSION_MINOR=1\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>ISO-8859-1
+-===================================================================
+-diff --git a/app/version.properties b/app/version.properties
+---- a/app/version.properties	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/app/version.properties	(date 1746024971109)
+-@@ -1,4 +1,4 @@
+--#Tue Apr 29 20:42:17 EEST 2025
+--VERSION_BUILD=4698
+-+#Wed Apr 30 19:56:11 PKT 2025
+-+VERSION_BUILD=4658
+- VERSION_MAJOR=2
+- VERSION_MINOR=1
+-Index: app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+>package com.projects.allnotificationblocker.blockthemall.Activities.Home\r\n\r\nimport android.content.*\r\nimport android.os.*\r\nimport android.view.*\r\nimport android.widget.*\r\nimport androidx.appcompat.app.*\r\nimport androidx.viewpager.widget.*\r\nimport com.google.android.material.tabs.*\r\nimport com.google.android.material.tabs.TabLayout.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.*\r\nimport com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesManager.Companion.fromJson\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.*\r\nimport com.projects.allnotificationblocker.blockthemall.Fragments.Applications.ApplicationsFragment.*\r\nimport com.projects.allnotificationblocker.blockthemall.R\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.*\r\nimport com.projects.allnotificationblocker.blockthemall.Utilities.Util.loadRulesManager\r\nimport com.projects.allnotificationblocker.blockthemall.data.db.entities.*\r\nimport timber.log.*\r\n\r\nclass ExceptionsActivity: AppCompatActivity(), View.OnClickListener,\r\n    ApplicationsFragmentListener {\r\n    override var rulesManager: RulesManager? = null\r\n    override var exceptions: ArrayList<String?> = ArrayList<String?>()\r\n    var profileString: String? = null\r\n    var tabs: TabLayout? = null\r\n    var sectionsPagerAdapter: SectionsPagerAdapter? = null\r\n    private var mButtonBackImage: ImageButton? = null\r\n\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        setContentView(R.layout.activity_exceptions)\r\n\r\n        profileString = intent.getStringExtra(Constants.PARAM_SELECTED_PROFILE)\r\n        if (profileString == null) {\r\n            rulesManager = RulesManager()\r\n        } else if (profileString!!.isEmpty()) {\r\n            Timber.tag(\"AppInfo\").d(\"profileString == null || profileString.isEmpty()\")\r\n            rulesManager = loadRulesManager()\r\n        } else {\r\n            Timber.tag(\"AppInfo\").d(\"profileString: %s\", profileString)\r\n            val p = Profile.fromJson(profileString)\r\n            rulesManager = fromJson(p.rules)\r\n        }\r\n\r\n        Timber.tag(\"AppInfo\").d(\"exceptions.size: %d\", exceptions.size)\r\n        for (i in exceptions.indices) {\r\n            Timber.tag(\"AppInfo\").d(\"Exception: %s\", exceptions.get(i))\r\n        }\r\n        rulesManager!!.logAllRules()\r\n\r\n        exceptions.clear()\r\n        exceptions.addAll(rulesManager!!.exceptions)\r\n\r\n        initView()\r\n    }\r\n\r\n    private fun initView() {\r\n        sectionsPagerAdapter =\r\n            SectionsPagerAdapter(this, supportFragmentManager, Constants.MODE_EXCEPTIONS)\r\n        tabs = findViewById<TabLayout>(R.id.tabs)\r\n        val mPagerView = findViewById<ViewPager>(R.id.view_pager)\r\n        mPagerView.adapter = sectionsPagerAdapter\r\n        tabs!!.setupWithViewPager(mPagerView)\r\n\r\n        val mSelectButton = findViewById<Button>(R.id.button_select)\r\n        mSelectButton.setOnClickListener(this)\r\n\r\n\r\n        // Iterate over all tabs and set the custom view\r\n        for (i in 0..<tabs!!.tabCount) {\r\n            val tab = tabs!!.getTabAt(i)\r\n            tab!!.customView = sectionsPagerAdapter!!.getTabView(i)\r\n        }\r\n\r\n        sectionsPagerAdapter!!.updateBackground(tabs!!.getTabAt(0)!!, 0, 0)\r\n\r\n\r\n        tabs!!.addOnTabSelectedListener(object: OnTabSelectedListener {\r\n            override fun onTabSelected(tab: Tab?) {\r\n                // Iterate over all tabs and set the custom view\r\n                for (i in 0..<tabs!!.tabCount) {\r\n                    val tab1 = tabs!!.getTabAt(i)\r\n\r\n                    sectionsPagerAdapter!!.updateBackground(\r\n                        tab1!!,\r\n                        i,\r\n                        tabs!!.selectedTabPosition\r\n                    )\r\n                }\r\n            }\r\n\r\n            override fun onTabUnselected(tab: Tab?) {\r\n            }\r\n\r\n            override fun onTabReselected(tab: Tab?) {\r\n            }\r\n        })\r\n\r\n\r\n        //  Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);\r\n        mButtonBackImage = findViewById<ImageButton>(R.id.image_button_back)\r\n        mButtonBackImage!!.setOnClickListener(this)\r\n    }\r\n\r\n    override fun onOptionsItemSelected(item: MenuItem): Boolean {\r\n        if (item.itemId == android.R.id.home) { //finish();\r\n            onBackPressed()\r\n        }\r\n        return true\r\n    }\r\n\r\n    override fun onBackPressed() {\r\n        //Execute your code here\r\n        super.onBackPressed()\r\n        setResult(RESULT_CANCELED)\r\n        finish()\r\n    }\r\n\r\n    override fun onClick(v: View) {\r\n        if (v.id == R.id.button_select) {\r\n            val intent = Intent()\r\n            intent.putStringArrayListExtra(Constants.PARAM_EXCEPTIONS, exceptions)\r\n            setResult(RESULT_OK, intent)\r\n            finish()\r\n        }\r\n\r\n        if (v.id == R.id.image_button_back) {\r\n            onBackPressed()\r\n        }\r\n    }\r\n\r\n    override fun selectApp(appInfo: AppInfo) {\r\n        exceptions.add(appInfo.packageName)\r\n    }\r\n\r\n    override fun unselectApp(appInfo: AppInfo) {\r\n        exceptions.remove(appInfo.packageName)\r\n    }\r\n\r\n\r\n    override fun refreshHome() {\r\n    }\r\n}\r\n\r\n
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt
+---- a/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/app/src/main/java/com/projects/allnotificationblocker/blockthemall/Activities/Home/ExceptionsActivity.kt	(date 1745949104941)
+-@@ -21,7 +21,7 @@
+- class ExceptionsActivity: AppCompatActivity(), View.OnClickListener,
+-     ApplicationsFragmentListener {
+-     override var rulesManager: RulesManager? = null
+--    override var exceptions: ArrayList<String?> = ArrayList<String?>()
+-+    override var exceptions: ArrayList<String?> = ArrayList()
+-     var profileString: String? = null
+-     var tabs: TabLayout? = null
+-     var sectionsPagerAdapter: SectionsPagerAdapter? = null
+-Index: .idea/gradle.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"GradleMigrationSettings\" migrationVersion=\"1\" />\r\n  <component name=\"GradleSettings\">\r\n    <option name=\"linkedExternalProjectsSettings\">\r\n      <GradleProjectSettings>\r\n        <option name=\"testRunner\" value=\"CHOOSE_PER_TEST\" />\r\n        <option name=\"externalProjectPath\" value=\"$PROJECT_DIR$\" />\r\n        <option name=\"gradleJvm\" value=\"#JAVA_HOME\" />\r\n        <option name=\"modules\">\r\n          <set>\r\n            <option value=\"$PROJECT_DIR$\" />\r\n            <option value=\"$PROJECT_DIR$/app\" />\r\n          </set>\r\n        </option>\r\n      </GradleProjectSettings>\r\n    </option>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/gradle.xml b/.idea/gradle.xml
+---- a/.idea/gradle.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/gradle.xml	(date 1745949104952)
+-@@ -6,7 +6,7 @@
+-       <GradleProjectSettings>
+-         <option name="testRunner" value="CHOOSE_PER_TEST" />
+-         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+--        <option name="gradleJvm" value="#JAVA_HOME" />
+-+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
+-         <option name="modules">
+-           <set>
+-             <option value="$PROJECT_DIR$" />
+-Index: .idea/deploymentTargetSelector.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-04-19T10:32:12.215480700Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\Khale\\.android\\avd\\Pixel_4_API_33.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+---- a/.idea/deploymentTargetSelector.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/deploymentTargetSelector.xml	(date 1745949104957)
+-@@ -4,10 +4,10 @@
+-     <selectionStates>
+-       <SelectionState runConfigName="app">
+-         <option name="selectionMode" value="DROPDOWN" />
+--        <DropdownSelection timestamp="2025-04-19T10:32:12.215480700Z">
+-+        <DropdownSelection timestamp="2025-04-24T23:25:28.996928400Z">
+-           <Target type="DEFAULT_BOOT">
+-             <handle>
+--              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Khale\.android\avd\Pixel_4_API_33.avd" />
+-+              <DeviceId pluginId="PhysicalDevice" identifier="serial=R5CNC08BL4W" />
+-             </handle>
+-           </Target>
+-         </DropdownSelection>
+-Index: .idea/misc.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><project version=\"4\">\r\n  <component name=\"CMakeSettings\">\r\n    <configurations>\r\n      <configuration PROFILE_NAME=\"Debug\" CONFIG_NAME=\"Debug\" />\r\n    </configurations>\r\n  </component>\r\n  <component name=\"JavadocGenerationManager\">\r\n    <option name=\"OUTPUT_DIRECTORY\" value=\"$USER_HOME$/Desktop/JavaDoc\" />\r\n  </component>\r\n  <component name=\"ProjectInspectionProfilesVisibleTreeState\">\r\n    <entry key=\"Project Default\">\r\n      <profile-state>\r\n        <expanded-state>\r\n          <State>\r\n            <id />\r\n          </State>\r\n          <State>\r\n            <id>Android</id>\r\n          </State>\r\n          <State>\r\n            <id>CorrectnessLintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Java</id>\r\n          </State>\r\n          <State>\r\n            <id>LintAndroid</id>\r\n          </State>\r\n          <State>\r\n            <id>Probable bugsJava</id>\r\n          </State>\r\n          <State>\r\n            <id>RELAX NG</id>\r\n          </State>\r\n        </expanded-state>\r\n      </profile-state>\r\n    </entry>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_17\" default=\"true\" project-jdk-name=\"temurin-17\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/misc.xml b/.idea/misc.xml
+---- a/.idea/misc.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/misc.xml	(date 1745950197209)
+-@@ -36,7 +36,7 @@
+-       </profile-state>
+-     </entry>
+-   </component>
+--  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="temurin-17" project-jdk-type="JavaSDK">
+-+  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="jbr-21" project-jdk-type="JavaSDK">
+-     <output url="file://$PROJECT_DIR$/build/classes" />
+-   </component>
+-   <component name="ProjectType">
+-Index: .idea/compiler.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <bytecodeTargetLevel target=\"21\">\r\n      <module name=\"BlockThatCall.app\" target=\"17\" />\r\n    </bytecodeTargetLevel>\r\n  </component>\r\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+---- a/.idea/compiler.xml	(revision d65c740f776692441df9f79415b26ff9b292a568)
+-+++ b/.idea/compiler.xml	(date 1745949104968)
+-@@ -1,8 +1,6 @@
+- <?xml version="1.0" encoding="UTF-8"?>
+- <project version="4">
+-   <component name="CompilerConfiguration">
+--    <bytecodeTargetLevel target="21">
+--      <module name="BlockThatCall.app" target="17" />
+--    </bytecodeTargetLevel>
+-+    <bytecodeTargetLevel target="21" />
+-   </component>
+- </project>
+-\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml b/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm__Default_Changelist_.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,4 +0,0 @@
+-<changelist name="Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]" date="1745949105005" recycled="true" deleted="true">
+-  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_29_04_2025_10_51_pm_[Default_Changelist]/shelved.patch" />
+-  <option name="DESCRIPTION" value="Uncommitted changes before Update at 29/04/2025 10:51 pm [Default Changelist]" />
+-</changelist>
+\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml b/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm__Default_Changelist_.xml	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
++++ /dev/null	(revision 1197cd5beadc82c5ed1e323159159b224e8f0734)
+@@ -1,4 +0,0 @@
+-<changelist name="Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]" date="1746025056087" recycled="true" deleted="true">
+-  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_30_04_2025_7_57_pm_[Default_Changelist]/shelved.patch" />
+-  <option name="DESCRIPTION" value="Uncommitted changes before Update at 30/04/2025 7:57 pm [Default Changelist]" />
+-</changelist>
+\ No newline at end of file

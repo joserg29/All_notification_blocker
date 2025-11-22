@@ -1,0 +1,29 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="thumbnail_width">48dp</dimen>
+    <dimen name="medium_thumbnail_width">36dp</dimen>
+    <dimen name="small_thumbnail_width">24dp</dimen>
+
+    <dimen name="dp24">24dp</dimen>
+    <dimen name="dialog_padding">16dp</dimen>
+    <dimen name="dialog_buttons_top_margin">16dp</dimen>
+    <dimen name="theme_radius">24dp</dimen>
+    <dimen name="tab_background_radius">8dp</dimen>
+    <dimen name="tab_icon_size">24dp</dimen>
+    <dimen name="small_text_size">12sp</dimen>
+
+
+    <dimen name="switch_width">18dp</dimen>
+    <dimen name="switch_height">18dp</dimen>
+    <dimen name="switch_circle_width">20dp</dimen>
+    <dimen name="switch_circle_height">22dp</dimen>
+    <dimen name="switch_corner_radius">50dp</dimen>
+    <dimen name="switch_padding_bottom">0dp</dimen>
+    <dimen name="switch_padding_top">0dp</dimen>
+    <dimen name="switch_padding_left">0dp</dimen>
+    <dimen name="switch_padding_right">0dp</dimen>
+    <dimen name="thumb_border_size">6dp</dimen>
+
+    <dimen name="default_radius">20dp</dimen>
+    <dimen name="logo_width">150dp</dimen>
+</resources>

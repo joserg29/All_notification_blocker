@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    style="@style/card_view_style"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:id="@+id/linear_layout_top_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.mikhaellopez.circularimageview.CircularImageView
+                android:id="@+id/image_view_app_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="0dp"
+                android:adjustViewBounds="true"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@android:drawable/ic_menu_gallery" />
+
+            <TextView
+                android:id="@+id/text_view_app_name"
+                style="@style/notification_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/app_name1" />
+
+            <TextView
+                android:id="@+id/text_view_subtext"
+                style="@style/notification_header"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/subtext" />
+
+            <TextView
+                android:id="@+id/text_view_timestamp"
+                style="@style/notification_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="@string/timestamp"
+                app:layout_constraintBottom_toBottomOf="@+id/image_view_app_icon"
+                app:layout_constraintStart_toEndOf="@id/text_view_subtext"
+                app:layout_constraintTop_toTopOf="@+id/image_view_app_icon" />
+
+            <TextView
+                android:id="@+id/text_view_count"
+                style="@style/notification_header"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/_2_items"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@+id/image_view_app_icon"
+                app:layout_constraintStart_toEndOf="@id/text_view_subtext"
+                app:layout_constraintTop_toTopOf="@+id/image_view_app_icon" />
+
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/image_button_more"
+            android:layout_width="4dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:background="@color/white"
+            android:contentDescription="@string/todo"
+            android:src="@drawable/ic_more"
+            android:visibility="gone"
+            app:tint="@color/blue" />
+
+
+        <LinearLayout
+            android:id="@+id/linear_layout_notification_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/linear_layout_top_bar"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text_view_title"
+                style="@style/card_title"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:text="@string/title"
+                android:textColor="#050000"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/text_view_text"
+                style="@style/card_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/text"
+                android:textColor="#000000" />
+
+
+            <LinearLayout
+                android:id="@+id/linear_layout2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <com.mikhaellopez.circularimageview.CircularImageView
+                    android:id="@+id/image_view_app_icon2"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="0dp"
+                    android:adjustViewBounds="true"
+                    android:visibility="gone"
+                    app:srcCompat="@android:drawable/ic_menu_gallery"
+                    tools:visibility="visible" />
+
+
+                <TextView
+                    android:id="@+id/text_view_app_name2"
+                    style="@style/notification_header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="0dp"
+                    android:text="@string/app_name1"
+                    android:textColor="@color/colorPrimary"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <Button
+                    android:id="@+id/button_call"
+                    style="@style/default_button_rounded"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:drawableStart="@drawable/ic_phone_white"
+                    android:padding="8dp"
+                    android:text="@string/call"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="?android:attr/listDivider"
+            android:visibility="gone" />
+
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <item
+        android:id="@+id/menu_item_clear"
+        android:icon="@drawable/ic_add_white"
+        android:title="@string/clear_notifications"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_apply_profile"
+        android:icon="@drawable/ic_profile"
+        android:iconTint="@color/white"
+        android:title="@string/profiles"
+        app:showAsAction="never"
+        tools:targetApi="o" />
+
+    <item
+        android:id="@+id/menu_item_disable_profile"
+        android:icon="@drawable/ic_profile"
+        android:iconTint="@color/white"
+        android:title="@string/reset_rules"
+        app:showAsAction="never"
+        tools:targetApi="o" />
+
+    <item
+        android:id="@+id/menu_item_privacy_policy"
+        android:iconTint="@color/white"
+        android:title="@string/privacy_policy"
+        app:showAsAction="never"
+        tools:targetApi="o" />
+    <item
+        android:id="@+id/menu_item_about"
+        android:iconTint="@color/white"
+        android:title="@string/about"
+        app:showAsAction="never"
+        tools:targetApi="o" />
+
+    <!--    <item-->
+    <!--        android:id="@+id/menu_item_save_profile"-->
+    <!--        android:icon="@drawable/ic_profile"-->
+    <!--        app:showAsAction="never"-->
+    <!--        android:iconTint="@color/white"-->
+    <!--        android:title="@string/save_profile"-->
+    <!--        tools:targetApi="o" />o-->
+
+    <item
+        android:id="@+id/menu_item_exit"
+        android:icon="@drawable/ic_settings_white_24dp"
+        android:title="@string/exit"
+        app:showAsAction="never" />
+
+
+</menu>

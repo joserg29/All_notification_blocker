@@ -1,0 +1,194 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowLightStatusBar" tools:ignore="NewApi">true</item>
+        <item name="android:statusBarColor" tools:ignore="NewApi">#ffffff</item>
+
+        <item name="android:windowBackground">@color/default_bg_color</item>
+        <item name="android:textColorPrimary">@color/colorPrimaryText</item>
+        <item name="android:textColorSecondary">@color/colorPrimaryText</item>
+        <item name="colorSwitchThumbNormal">@color/grey</item>
+        <item name="colorControlHighlight">@color/colorPrimary</item>
+
+        <item name="colorControlNormal">@color/colorSecondaryText</item>
+        <item name="android:popupMenuStyle">@style/PopupMenu</item>
+        <item name="materialCalendarTheme">@style/ThemeOverlay.App.DatePicker</item>
+        <!--        <item name="android:colorForeground">#666666</item>-->
+    </style>
+
+    <style name="ThemeOverlay.App.DatePicker" parent="@style/ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent
+        </item>
+        <!-- Customize text field of the text input mode. -->
+    </style>
+
+    <style name="ShapeAppearance.App.MediumComponent" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="mydialog" parent="Theme.MaterialComponents.Light.NoActionBar">
+
+    </style>
+
+    <style name="Widget.Button.Toggle" parent="android:Widget">
+        <item name="android:background">@drawable/toggle_bg</item>
+    </style>
+
+    <style name="toggleButton" parent="AppTheme">
+        <item name="android:buttonStyleToggle">@style/Widget.Button.Toggle</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+    </style>
+
+    <style name="PopupMenu" parent="@android:style/Widget.PopupMenu">
+        <item name="android:popupBackground">@drawable/menu_background</item>
+        <item name="android:textColor">@color/blue</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="default_switch">
+        <item name="android:track">@drawable/switch_custom_track</item>
+        <item name="android:thumb">@drawable/switch_custom_thumb</item>
+    </style>
+
+    <style name="default_switch_list">
+        <item name="android:track">@drawable/switch_custom_track_list</item>
+        <item name="android:thumb">@drawable/switch_custom_thumb_list</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="background">@color/colorPrimaryDark</item>
+    </style>
+
+    <style name="default_button_rounded" parent="default_button">
+        <item name="android:background">@drawable/button_rounded</item>
+    </style>
+
+
+    <style name="default_button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+    </style>
+
+    <style name="notification_header">
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="search_edittext">
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="fontFamily">@font/segoeui</item>
+        <item name="android:background">@drawable/search_edit_text</item>
+        <item name="android:drawableStart">@drawable/ic_search2</item>
+        <item name="drawableTint">@color/blue</item>
+        <item name="android:inputType">text</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:hint">@string/search</item>
+    </style>
+
+    <style name="Base.Widget.Design.TabLayout" parent="android:Widget">
+        <item name="tabIndicatorColor">@color/white</item>
+        <item name="tabIndicatorHeight">2dp</item>
+        <item name="tabPaddingBottom">8dp</item>
+        <item name="tabPaddingStart">16dp</item>
+        <item name="tabPaddingEnd">16dp</item>
+        <item name="tabPaddingTop">4dp</item>
+        <item name="tabMaxWidth">40dp</item>
+        <item name="android:clipToPadding">true</item>
+
+    </style>
+
+
+    <style name="top_header_text">
+        <item name="android:gravity">center</item>
+        <item name="android:text">All Notifications \nBlocked</item>
+        <item name="android:textColor">@color/blue</item>
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="card_title">
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:textColor">#818181</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="card_subtitle">
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:textColor">#818181</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="card_view_style">
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="cardCornerRadius">8dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+
+
+    <style name="dialog_button" parent="default_button_rounded">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+
+    <style name="dialog_title">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:textColor">@color/blue</item>
+    </style>
+
+    <style name="dialog_text">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">@dimen/dp24</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="tabs_linear_layout">
+        <item name="android:background">@drawable/blue_bg_rounded_top</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="context_menu_item">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+
+</resources>

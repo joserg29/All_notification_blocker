@@ -1,0 +1,187 @@
+{
+  "project_info": {
+    "project_number": "139813809462",
+    "firebase_url": "https://blockthemall-4b6f1.firebaseio.com",
+    "project_id": "blockthemall-4b6f1",
+    "storage_bucket": "blockthemall-4b6f1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139813809462:android:d3fafafe149db420b41797",
+        "android_client_info": {
+          "package_name": "com.projects.allnotificationblocker.blockthemall.free"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "139813809462-9fg9m050a4c7ui01guq61nesjm4d49kn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.projects.allnotificationblocker.blockthemall.free",
+            "certificate_hash": "e046fda5738b0738ce42d6c0e67a79dda300aa49"
+          }
+        },
+        {
+          "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_sHXIdqKjBBv0SaJ-YleR0ncEhrWj0Gw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "139813809462-ad8gp35jlt0fol6o35vddsjhv0dtdmot.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.projects.freelanceapps.blockthemall.pro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139813809462:android:34e8c67518fa0816b41797",
+        "android_client_info": {
+          "package_name": "com.projects.allnotificationblocker.blockthemall.pro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "139813809462-petb6b2ts0t53bg06kf18sh61pqoclta.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.projects.allnotificationblocker.blockthemall.pro",
+            "certificate_hash": "e046fda5738b0738ce42d6c0e67a79dda300aa49"
+          }
+        },
+        {
+          "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_sHXIdqKjBBv0SaJ-YleR0ncEhrWj0Gw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "139813809462-ad8gp35jlt0fol6o35vddsjhv0dtdmot.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.projects.freelanceapps.blockthemall.pro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139813809462:android:f59da5879f9bd152b41797",
+        "android_client_info": {
+          "package_name": "com.projects.freelanceapps.blockthemall.free"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "139813809462-qv5511ubesbkahh2065m0d97kudhvhl2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.projects.freelanceapps.blockthemall.free",
+            "certificate_hash": "e046fda5738b0738ce42d6c0e67a79dda300aa49"
+          }
+        },
+        {
+          "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_sHXIdqKjBBv0SaJ-YleR0ncEhrWj0Gw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "139813809462-ad8gp35jlt0fol6o35vddsjhv0dtdmot.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.projects.freelanceapps.blockthemall.pro"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139813809462:android:0b06d8a983dd6e2eb41797",
+        "android_client_info": {
+          "package_name": "com.projects.freelanceapps.blockthemall.pro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "139813809462-pkhnha6gdvqidm663jb73nhej8ss91gg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.projects.freelanceapps.blockthemall.pro",
+            "certificate_hash": "46ab9e7c0eeb942f9fcc839171a7cdc900bfe7e0"
+          }
+        },
+        {
+          "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_sHXIdqKjBBv0SaJ-YleR0ncEhrWj0Gw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139813809462-gi25e9lnj8sqhs4ifeqj8blgch1gi6vq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "139813809462-ad8gp35jlt0fol6o35vddsjhv0dtdmot.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.projects.freelanceapps.blockthemall.pro"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
