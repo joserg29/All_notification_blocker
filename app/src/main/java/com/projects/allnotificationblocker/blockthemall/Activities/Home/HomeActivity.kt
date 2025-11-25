@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.lifecycle.lifecycleScope
 import android.util.Log
 import android.util.TimingLogger
 import android.view.ContextThemeWrapper
@@ -78,6 +77,7 @@ import com.projects.allnotificationblocker.blockthemall.Fragments.Applications.A
 import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.MyNotListenerService
 import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.NotificationsAdapter.NotificationsAdapterListener
 import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.NotificationsFragment.NotificationsFragmentListener
+import java.util.concurrent.TimeUnit
 import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Application.MyApplication
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants
@@ -375,23 +375,24 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
 
 
     private fun checkAndShowSubscriptionDialog(context: Context) {
-//        if (PrefSub.isPremium(context)) return // Paid user, skip everything
+        val isPremiumUser = PrefSub.isPremium(context)
+        val tempDisabled = PrefSub.isDialogTemporarilyDisabled(context)
+        if (isPremiumUser || tempDisabled) {
+            Log.d("AdTimerCheck", "Skipping dialog: premium=$isPremiumUser, tempDisabled=$tempDisabled")
+            return
+        }
 
         val lastTime = PrefSub.getLastDialogTime(context)
         val now = System.currentTimeMillis()
         val twentyFourHours = 24 * 60 * 60 * 1000L
 
-        // TODO:TESTING
-        if (true) {
-//        if (now - lastTime >= twentyFourHours) {
+        if (now - lastTime >= twentyFourHours) {
             Log.d("AdTimerCheck", "✅ 24 hours passed — showing subscribe/ad dialog.")
             preloadAdAndShowRewardedDialog(this)
-//            preloadAdAndShowDialog(this)
         } else {
             val hoursLeft = (twentyFourHours - (now - lastTime)) / (1000 * 60 * 60)
             Log.d("AdTimerCheck", "⏳ Not yet — $hoursLeft hours remaining before next dialog.")
         }
-
     }
 
     private fun preloadAdAndShowRewardedDialog(context: Context) {
@@ -959,6 +960,16 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
         return super.onCreateOptionsMenu(menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val toggleItem = menu?.findItem(R.id.menu_item_toggle_subscription_prompt)
+        toggleItem?.title = if (PrefSub.isDialogTemporarilyDisabled(this)) {
+            getString(R.string.enable_upgrade_prompt)
+        } else {
+            getString(R.string.temporarily_disable_upgrade_prompt)
+        }
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val itemId = item.itemId
         if (itemId == R.id.menu_item_clear) {
@@ -970,6 +981,8 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
             confirmExit()
         } else if (itemId == R.id.menu_item_disable_profile) {
             disableProfile()
+        } else if (itemId == R.id.menu_item_toggle_subscription_prompt) {
+            toggleSubscriptionPrompt()
         }
         return true
     }
@@ -1006,6 +1019,17 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
                 }
             }
         })
+    }
+
+    private fun toggleSubscriptionPrompt() {
+        if (PrefSub.isDialogTemporarilyDisabled(this)) {
+            PrefSub.clearDialogTemporaryDisable(this)
+            Toast.makeText(this, getString(R.string.upgrade_prompt_enabled_toast), Toast.LENGTH_SHORT).show()
+        } else {
+            PrefSub.disableDialogTemporarily(this, TimeUnit.MINUTES.toMillis(30))
+            Toast.makeText(this, getString(R.string.upgrade_prompt_disabled_toast), Toast.LENGTH_SHORT).show()
+        }
+        invalidateOptionsMenu()
     }
 
     override val notificationsList: MutableList<NotificationInfo?>?

@@ -26,6 +26,13 @@
         tools:targetApi="o" />
 
     <item
+        android:id="@+id/menu_item_toggle_subscription_prompt"
+        android:iconTint="@color/white"
+        android:title="@string/temporarily_disable_upgrade_prompt"
+        app:showAsAction="never"
+        tools:targetApi="o" />
+
+    <item
         android:id="@+id/menu_item_privacy_policy"
         android:iconTint="@color/white"
         android:title="@string/privacy_policy"

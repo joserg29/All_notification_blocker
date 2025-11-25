@@ -77,6 +77,10 @@
     <string name="are_you_sure_overwrite_profile">Are you sure you want to overwrite profile: %1$s?</string>
     <string name="are_you_sure_disable_profile">Are you sure you want to disable the current rules?</string>
     <string name="reset_rules">Reset Rules</string>
+    <string name="temporarily_disable_upgrade_prompt">Temporarily disable upgrade alert</string>
+    <string name="enable_upgrade_prompt">Enable upgrade alert now</string>
+    <string name="upgrade_prompt_disabled_toast">Upgrade alert disabled for 30 minutes</string>
+    <string name="upgrade_prompt_enabled_toast">Upgrade alert re-enabled</string>
 
 
     <!--please replace the ids here-->

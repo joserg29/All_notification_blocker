@@ -285,7 +285,18 @@ class RulesManager(
         return packageRules
     }
 
-    fun hasCustomEnabledValidRules(packageName: String?): Boolean? {
+    fun hasCustomEnabledValidRules(packageName: String?): Boolean {
+        for (i in rules.indices) {
+            if (rules[i].packageName == packageName &&
+                rules[i].isCustom && rules[i].isEnabled && !rules[i].isExpired()
+            ) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun hasCustomEnabledActiveRules(packageName: String?): Boolean {
         for (i in rules.indices) {
             if (rules[i].packageName == packageName &&
                 rules[i].isCustom && rules[i].isEnabled && rules[i].isActive()
@@ -293,8 +304,6 @@ class RulesManager(
                 return true
             }
         }
-
-
         return false
     }
 
