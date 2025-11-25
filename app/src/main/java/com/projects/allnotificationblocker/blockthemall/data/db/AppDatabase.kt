@@ -9,7 +9,7 @@ import com.projects.allnotificationblocker.blockthemall.domain.Schedule
 
 @Database(
     entities = [Profile::class, Rule::class, NotificationInfo::class],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 @TypeConverters(ScheduleConverters::class)

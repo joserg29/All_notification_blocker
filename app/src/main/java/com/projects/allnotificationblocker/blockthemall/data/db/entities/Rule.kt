@@ -18,6 +18,7 @@ data class Rule(
     var isEnabled: Boolean,
     var everyday: Boolean = false,
     var schedule: Schedule,
+    var profileId: Int? = null,
     var alarmId: String = UUID.randomUUID().toString(),
 ) {
 
@@ -81,13 +82,14 @@ data class Rule(
     }
 
     companion object {
-        fun newPermenantRule(packageName: String): Rule {
+        fun newPermenantRule(packageName: String, profileId: Int? = null): Rule {
             val rule = Rule(
                 packageName = packageName,
                 ruleType = Constants.RULE_TYPE_PERMENANT,
                 isEnabled = true,
                 everyday = false,
-                schedule = Schedule()
+                schedule = Schedule(),
+                profileId = profileId
             )
             return rule
         }

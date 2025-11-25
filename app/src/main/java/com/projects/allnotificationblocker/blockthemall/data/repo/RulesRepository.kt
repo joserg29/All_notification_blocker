@@ -20,6 +20,10 @@ class RulesRepository(application: Application) {
         dao.insert(record)
     }
 
+    suspend fun insertAll(records: List<Rule>) {
+        dao.insertAll(records)
+    }
+
     suspend fun update(record: Rule) {
         dao.update(record)
     }
@@ -32,4 +36,15 @@ class RulesRepository(application: Application) {
         dao.deleteAllRecords()
     }
 
+    suspend fun deleteRulesForProfile(profileId: Int) {
+        dao.deleteRulesForProfile(profileId)
+    }
+
+    suspend fun getRulesForProfile(profileId: Int): List<Rule> {
+        return dao.getRulesForProfile(profileId)
+    }
+
+    suspend fun getGlobalRules(): List<Rule> {
+        return dao.getGlobalRules()
+    }
 }

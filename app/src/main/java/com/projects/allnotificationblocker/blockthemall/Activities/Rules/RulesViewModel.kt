@@ -15,6 +15,10 @@ class RulesViewModel(application: Application): AndroidViewModel(application) {
         repository.insert(rule)
     }
 
+    fun insertAll(rules: List<Rule>) = viewModelScope.launch {
+        repository.insertAll(rules)
+    }
+
     fun update(rule: Rule) = viewModelScope.launch {
         repository.update(rule)
     }
@@ -25,5 +29,17 @@ class RulesViewModel(application: Application): AndroidViewModel(application) {
 
     fun deleteAllRules() = viewModelScope.launch {
         repository.deleteAllRules()
+    }
+
+    fun deleteRulesForProfile(profileId: Int) = viewModelScope.launch {
+        repository.deleteRulesForProfile(profileId)
+    }
+
+    suspend fun getRulesForProfile(profileId: Int): List<Rule> {
+        return repository.getRulesForProfile(profileId)
+    }
+
+    suspend fun getGlobalRules(): List<Rule> {
+        return repository.getGlobalRules()
     }
 }
