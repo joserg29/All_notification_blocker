@@ -177,7 +177,9 @@ class RulesActivity: AppCompatActivity(), View.OnClickListener, RulesAdapterList
                     rule.stopTimer(applicationContext)
                     rulesManager!!.rules.remove(rule)
                     rules.remove(rule)
-                    Util.saveRulesManager(rulesManager!!)
+                    if (mode != Constants.MODE_PROFILE) {
+                        Util.saveRulesManager(rulesManager!!)
+                    }
                     rulesAdapter!!.notifyDataSetChanged()
                 }
             }
@@ -193,7 +195,9 @@ class RulesActivity: AppCompatActivity(), View.OnClickListener, RulesAdapterList
     override fun updateRule(pkey: Int, schedule: Schedule) {
         val updatedRule = rulesManager!!.editCustomRule(pkey, schedule)
         updatedRule?.scheduleTimers(applicationContext)
-        Util.saveRulesManager(rulesManager!!)
+        if (mode != Constants.MODE_PROFILE) {
+            Util.saveRulesManager(rulesManager!!)
+        }
         rulesAdapter!!.notifyDataSetChanged()
     }
 
@@ -215,7 +219,9 @@ class RulesActivity: AppCompatActivity(), View.OnClickListener, RulesAdapterList
         }
         rules.add(rule)
         rule.scheduleTimers(applicationContext)
-        Util.saveRulesManager(rulesManager!!)
+        if (mode != Constants.MODE_PROFILE) {
+            Util.saveRulesManager(rulesManager!!)
+        }
         rulesAdapter!!.notifyDataSetChanged()
 
     }

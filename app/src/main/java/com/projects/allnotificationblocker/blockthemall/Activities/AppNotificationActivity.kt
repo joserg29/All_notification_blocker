@@ -80,7 +80,9 @@ class AppNotificationActivity: AppCompatActivity(), NotificationsAdapterListener
         binding.statRv.layoutManager = layoutManager
         binding.statRv.adapter = adapter
         lifecycleScope.launch(Dispatchers.IO) {
-            filteredNot = notificationRepo.getAllRecords().filter { it.packageName == packageName }
+            filteredNot = notificationRepo.getAllRecords()
+                .filter { it.packageName == packageName }
+                .sortedByDescending { it.postTimeEpoch }
                 .toMutableList()
             adapter.notifications = filteredNot!!
             withContext(Dispatchers.Main) {
@@ -97,7 +99,10 @@ class AppNotificationActivity: AppCompatActivity(), NotificationsAdapterListener
                 return@observe
             }
             lifecycleScope.launch(Dispatchers.Main) {
-                adapter.notifications = it.filter { it.packageName == packageName }.toMutableList()
+                filteredNot = it.filter { it.packageName == packageName }
+                    .sortedByDescending { notif -> notif.postTimeEpoch }
+                    .toMutableList()
+                adapter.notifications = filteredNot!!.toMutableList()
                 adapter.notifyDataSetChanged()
                 if (it.isNotEmpty()) {
                     //todo  hideLoading()
@@ -128,7 +133,10 @@ class AppNotificationActivity: AppCompatActivity(), NotificationsAdapterListener
             to = Date(selection.second)
             if (from != null && to != null) {
                 adapter.notifications =
-                    filteredNot!!.filter { it.postTime!!.toLong() >= from!!.time && it.postTime!!.toLong() <= to!!.time }
+                    filteredNot!!.filter {
+                        val epoch = if (it.postTimeEpoch != 0L) it.postTimeEpoch else it.postTime?.toLongOrNull() ?: 0L
+                        epoch in from!!.time..to!!.time
+                    }
                         .toMutableList()
                 binding.durationTv.text =
                     getDuration(from!!.getDateString(), to!!.getDateString())

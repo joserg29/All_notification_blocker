@@ -6,6 +6,8 @@ import android.view.*
 import android.widget.*
 import androidx.appcompat.app.*
 import androidx.lifecycle.*
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.recyclerview.widget.*
 import com.google.android.gms.ads.*
 import com.google.android.material.floatingactionbutton.*
@@ -217,7 +219,9 @@ class SelectProfileActivity: AppCompatActivity(), View.OnClickListener {
                         if (selectedProfileName == profile.name) {
                             Prefs.putString(Constants.PARAM_SELECTED_PROFILE_NAME, "")
                         }
-                        viewModel!!.delete(profile)
+                        lifecycleScope.launch {
+                            viewModel!!.delete(profile)
+                        }
                     }
                 })
             }

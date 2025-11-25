@@ -35,6 +35,13 @@ class RulesViewModel(application: Application): AndroidViewModel(application) {
         repository.deleteRulesForProfile(profileId)
     }
 
+    suspend fun replaceRulesForProfile(profileId: Int, rules: List<Rule>) {
+        repository.deleteRulesForProfile(profileId)
+        if (rules.isNotEmpty()) {
+            repository.insertAll(rules)
+        }
+    }
+
     suspend fun getRulesForProfile(profileId: Int): List<Rule> {
         return repository.getRulesForProfile(profileId)
     }

@@ -16,8 +16,8 @@ class ProfilesRepository(application: Application) {
         allProfiles = dao.getAllProfiles()
     }
 
-    suspend fun insert(profile: Profile) {
-        dao.insert(profile)
+    suspend fun insert(profile: Profile): Long {
+        return dao.insert(profile)
     }
 
     suspend fun update(profile: Profile) {

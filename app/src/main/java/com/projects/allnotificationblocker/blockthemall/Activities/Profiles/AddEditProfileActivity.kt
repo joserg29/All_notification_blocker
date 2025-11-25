@@ -7,7 +7,9 @@ import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.*
 import androidx.cardview.widget.*
-import androidx.lifecycle.*
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.*
 import com.google.android.gms.ads.*
 import com.google.android.material.appbar.*
@@ -17,10 +19,10 @@ import com.google.android.material.tabs.TabLayout.*
 import com.projects.allnotificationblocker.blockthemall.Activities.Home.*
 import com.projects.allnotificationblocker.blockthemall.Activities.Rules.*
 import com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesManager.Companion.fromJson
+import com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesViewModel
 import com.projects.allnotificationblocker.blockthemall.Dialogs.*
 import com.projects.allnotificationblocker.blockthemall.Dialogs.ProfileNameDialog.*
 import com.projects.allnotificationblocker.blockthemall.Fragments.Applications.ApplicationsFragment.*
-import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.MyNotListenerService
 import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.NotificationsAdapter.*
 import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Utilities.*
@@ -28,6 +30,7 @@ import com.projects.allnotificationblocker.blockthemall.Utilities.Constants.RULE
 import com.projects.allnotificationblocker.blockthemall.Utilities.Util.enableEdgeToEdge16
 import com.projects.allnotificationblocker.blockthemall.data.db.entities.*
 import com.projects.allnotificationblocker.blockthemall.domain.*
+import kotlinx.coroutines.launch
 import timber.log.*
 
 class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
@@ -35,7 +38,7 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
     CompoundButton.OnCheckedChangeListener {
     private val profiles = ArrayList<Profile?>()
     override var rulesManager: RulesManager? = RulesManager()
-    lateinit var selectedProfile: Profile
+    private var selectedProfile: Profile? = null
     var tabs: TabLayout? = null
     private var textViewBlockAllTitle: TextView? = null
     private var switchBlock: SwitchMaterial? = null
@@ -44,43 +47,31 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
     private var textViewBlockAllStatus: TextView? = null
     private val mReceiver: BroadcastReceiver? = null
     private val mAdView: AdView? = null
-    private var profilesViewModel: ProfilesViewModel? = null
     private var selectedProfileName: String? = ""
     private val mCardView3: CardView? = null
     private val mCardView2: CardView? = null
     private var mAppBarLayout: AppBarLayout? = null
     private var mSaveProfileButton: Button? = null
     private var mButtonBackImage: ImageButton? = null
+    private lateinit var profilesViewModel: ProfilesViewModel
+    private lateinit var rulesDbViewModel: RulesViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_edit_profile)
         enableEdgeToEdge16(findViewById(R.id.main))
+        profilesViewModel = ViewModelProvider(this)[ProfilesViewModel::class.java]
+        rulesDbViewModel = ViewModelProvider(this)[RulesViewModel::class.java]
         initView()
-
-        // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        //initViewModel();
-        val intent = getIntent()
-        if (intent != null) {
-            selectedProfileName = intent.getStringExtra(Constants.PARAM_SELECTED_PROFILE_NAME)
-            val profileString = intent.getStringExtra(Constants.PARAM_SELECTED_PROFILE)
-            if (profileString != null) {
-                Timber.tag("AppInfo").d("profileString: %s", profileString)
-                selectedProfile = Profile.fromJson(profileString)
-                rulesManager = fromJson(selectedProfile!!.rules)
-                rulesManager!!.logAllRules()
-                // getSupportActionBar().setTitle("Edit Profile: " + selectedProfileName);
-            } else {
-                rulesManager = RulesManager()
-                // getSupportActionBar().setTitle("New Profile");
-            }
-        } else {
-            rulesManager = RulesManager()
-            // getSupportActionBar().setTitle("New Profile");
+        initViewModel()
+        val intent = intent
+        selectedProfileName = intent?.getStringExtra(Constants.PARAM_SELECTED_PROFILE_NAME)
+        val profileString = intent?.getStringExtra(Constants.PARAM_SELECTED_PROFILE)
+        if (profileString != null) {
+            Timber.tag("AppInfo").d("profileString: %s", profileString)
+            selectedProfile = Profile.fromJson(profileString)
         }
-        initView()
-        refreshViews()
+        loadRulesForProfile(selectedProfile)
     }
 
     private fun initView() {
@@ -148,9 +139,6 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
         mSaveProfileButton!!.setOnClickListener(this)
 
 
-        profilesViewModel =
-            ViewModelProviders.of(this).get<ProfilesViewModel>(ProfilesViewModel::class.java)
-
         mButtonBackImage = findViewById<ImageButton>(R.id.image_button_back)
         mButtonBackImage!!.setOnClickListener(this)
     }
@@ -162,36 +150,12 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
 
     private fun loadProfiles() {
         Timber.tag("AppInfo").d("Initializing ViewModel for Profiles")
-        profilesViewModel =
-            ViewModelProviders.of(this).get<ProfilesViewModel>(ProfilesViewModel::class.java)
 
         Timber.tag("AppInfo").d("Loading profiles")
-        profilesViewModel!!.allRecords
+        profilesViewModel.allRecords
             .observe(this, Observer { records: MutableList<Profile> ->
                 profiles.clear()
                 profiles.addAll(records)
-
-                val intent = getIntent()
-                if (intent != null) {
-                    selectedProfileName =
-                        intent.getStringExtra(Constants.PARAM_SELECTED_PROFILE_NAME)
-                    if (selectedProfileName != null) {
-                        val p = getProfile(selectedProfileName)
-                        if (p != null) {
-                            rulesManager = fromJson(p.rules)
-                            initView()
-                            refreshViews()
-                        }
-                    } else {
-                        rulesManager = RulesManager()
-                        initView()
-                        refreshViews()
-                    }
-                } else {
-                    rulesManager = RulesManager()
-                    initView()
-                    refreshViews()
-                }
             })
     }
 
@@ -213,11 +177,31 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
     }
 
     private fun refreshViews() {
+        if (rulesManager == null) {
+            return
+        }
         refreshBlockAllSwitch()
         refreshBlockingStatus()
 
         sectionsPagerAdapter!!.applicationsFragment!!.refreshApps2()
         //sectionsPagerAdapter!!.contactsFragment!!.refreshContacts2(rulesManager)
+    }
+
+    private fun loadRulesForProfile(profile: Profile?) {
+        lifecycleScope.launch {
+            val profileId = profile?.pkey
+            val dbRules = profileId?.let { rulesDbViewModel.getRulesForProfile(it) } ?: emptyList()
+            val legacyManager = profile?.rules?.let { fromJson(it) }
+            val manager = RulesManager(profileId = profileId)
+            manager.exceptions = legacyManager?.exceptions ?: ArrayList()
+            manager.rules = when {
+                dbRules.isNotEmpty() -> dbRules.map { it.copy() }.toMutableList()
+                legacyManager != null -> legacyManager.rules.map { it.copy(profileId = profileId) }.toMutableList()
+                else -> mutableListOf()
+            }
+            rulesManager = manager
+            refreshViews()
+        }
     }
 
 
@@ -233,32 +217,8 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
         } else {
             rulesManager!!.disableRule(RULE_BLOCK_ALL)
         }
-        
-        // Save rules and notify notification service immediately
-        Util.saveRulesManager(rulesManager!!)
-        ensureServiceRunningAndCancelNotifications()
 
         refreshViews()
-    }
-    
-    private fun ensureServiceRunningAndCancelNotifications() {
-        try {
-            // Ensure service is running first
-            if (!MyNotListenerService.isServiceRunning) {
-                Timber.tag("AppInfo").d("Service not running, starting it...")
-                MyNotListenerService.startService(applicationContext, MyNotListenerService.Actions.Enable)
-                // Give it a moment to start, then trigger cancellation
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    MyNotListenerService.triggerImmediateCancellation(applicationContext)
-                }, 100)
-            } else {
-                // Service is running, trigger immediate cancellation
-                MyNotListenerService.triggerImmediateCancellation(applicationContext)
-            }
-            Timber.tag("AppInfo").d("Triggered immediate notification cancellation")
-        } catch (e: Exception) {
-            Timber.tag("AppInfo").e(e, "Error ensuring service running and cancelling notifications")
-        }
     }
 
     private fun refreshBlockAllSwitch() {
@@ -326,11 +286,11 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
                             selectedProfileName
                         )
 
-                        if (selectedProfile != null) {
-                            Timber.tag("AppInfo").d("p.toJson(): %s", selectedProfile!!.toJson())
+                        selectedProfile?.let {
+                            Timber.tag("AppInfo").d("p.toJson(): %s", it.toJson())
                             intent.putExtra(
                                 Constants.PARAM_SELECTED_PROFILE,
-                                selectedProfile!!.toJson()
+                                it.toJson()
                             )
                         }
                         startActivityForResult(intent, Constants.REQ_CODE_EXCEPTIONS)
@@ -368,6 +328,7 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
             if (resultCode == RESULT_OK) {
                 val s = data!!.getStringExtra(Constants.PARAM_RULES_MANAGER)
                 rulesManager = fromJson(s)
+                rulesManager?.profileId = selectedProfile?.pkey
                 refreshViews()
             }
         }
@@ -376,7 +337,7 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
             if (resultCode == RESULT_OK) {
                 val ruleManagerString = data!!.getStringExtra(Constants.PARAM_RULES_MANAGER)
                 rulesManager = fromJson(ruleManagerString)
-                Util.saveRulesManager(rulesManager!!)
+                rulesManager?.profileId = selectedProfile?.pkey
                 refreshViews()
             }
         }
@@ -391,7 +352,7 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
     }
 
     private fun saveProfile() {
-        if (selectedProfileName == null || selectedProfileName!!.isEmpty()) {
+        if (selectedProfileName.isNullOrEmpty()) {
             val dialog = ProfileNameDialog(
                 this,
                 getString(R.string.save_profile)
@@ -399,51 +360,74 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
 
             dialog.show()
             dialog.setCancelable(true)
-            dialog.setOnDismissListener(DialogInterface.OnDismissListener { dialogInterface: DialogInterface? ->
+            dialog.setOnDismissListener(DialogInterface.OnDismissListener {
                 val profileName = dialog.name
-                val p = getProfile(profileName)
+                if (profileName.isBlank()) {
+                    return@OnDismissListener
+                }
                 val profileDescription = dialog.description
-                if (p == null) {
-                    selectedProfileName = profileName
-                    //Prefs.putString(Constants.PARAM_SELECTED_PROFILE_NAME, selectedProfileName);
-                    Timber.tag("AppInfo").d("Saving new profile: %s", selectedProfileName)
-                    rulesManager!!.logAllRules()
-
-                    profilesViewModel!!.insert(
-                        Profile(
-                            profileName,
-                            profileDescription,
-                            rulesManager!!.toJson()
+                val existingProfile = getProfile(profileName)
+                lifecycleScope.launch {
+                    if (existingProfile == null) {
+                        createProfile(profileName, profileDescription)
+                    } else {
+                        val confirmDialog = ConfirmDialog(
+                            this@AddEditProfileActivity,
+                            getString(R.string.are_you_sure_overwrite_profile, profileName)
                         )
-                    )
-                    finish()
-                } else {
-                    updateCurrentProfile()
+                        confirmDialog.show()
+                        confirmDialog.setOnDismissListener(DialogInterface.OnDismissListener {
+                            if (confirmDialog.result) {
+                                selectedProfileName = profileName
+                                selectedProfile = existingProfile
+                                lifecycleScope.launch {
+                                    updateProfile(existingProfile)
+                                }
+                            }
+                        })
+                    }
                 }
             })
         } else {
-            updateCurrentProfile()
+            lifecycleScope.launch {
+                val profile = selectedProfile
+                if (profile == null) {
+                    createProfile(selectedProfileName!!, "")
+                } else {
+                    updateProfile(profile)
+                }
+            }
         }
     }
 
-    private fun updateCurrentProfile() {
-        val dialog = ConfirmDialog(
-            this@AddEditProfileActivity,
-            getString(R.string.are_you_sure_overwrite_profile, selectedProfileName)
+    private suspend fun createProfile(name: String, description: String) {
+        Timber.tag("AppInfo").d("Saving new profile: %s", name)
+        val profile = Profile(
+            name = name,
+            description = description,
+            rules = rulesManager!!.toJson()
         )
-        dialog.show()
-        dialog.setCancelable(true)
-        dialog.setOnDismissListener(object: DialogInterface.OnDismissListener {
-            override fun onDismiss(dialogInterface: DialogInterface?) {
-                if (dialog.result) {
-                    //Prefs.putString(Constants.PARAM_SELECTED_PROFILE_NAME, selectedProfileName);
-                    selectedProfile!!.rules = rulesManager!!.toJson()
-                    profilesViewModel!!.update(selectedProfile)
+        val newId = profilesViewModel.insert(profile).toInt()
+        selectedProfile = profile.copy(pkey = newId)
+        selectedProfileName = name
+        persistRulesForProfile(newId)
+        finish()
+    }
 
-                    finish()
-                }
-            }
-        })
+    private suspend fun updateProfile(profile: Profile) {
+        val updatedProfile = profile.copy(rules = rulesManager!!.toJson())
+        profilesViewModel.update(updatedProfile)
+        selectedProfile = updatedProfile
+        selectedProfileName = updatedProfile.name
+        persistRulesForProfile(updatedProfile.pkey)
+        finish()
+    }
+
+    private suspend fun persistRulesForProfile(profileId: Int) {
+        val manager = rulesManager ?: return
+        manager.profileId = profileId
+        val rulesToSave = manager.rules.map { it.copy(profileId = profileId) }
+        rulesDbViewModel.replaceRulesForProfile(profileId, rulesToSave)
     }
 
 

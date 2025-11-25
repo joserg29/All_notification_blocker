@@ -300,17 +300,8 @@ class NotificationsFragment: Fragment() {
                 }
 
             }
-            var notificationRepo= MyApplication.notificationRepo
-
+            val notificationRepo = MyApplication.notificationRepo
             CoroutineScope(Dispatchers.IO).launch {
-                val allNotifications =notificationRepo.getAllRecords()
-               //todo fix  if (!myNotification.hasTitle()|| !myNotification.hasText()) {
-               //     return@launch
-               // }
-                allNotifications.filter {
-                    myNotification.timestamp==it.timestamp &&myNotification.packageName==it.packageName
-                            && myNotification.text==it.text && myNotification.title==it.title
-                }.forEach { notificationRepo.delete(it) }
                 notificationRepo.insert(myNotification)
             }
         }

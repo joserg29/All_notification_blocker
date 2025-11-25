@@ -10,7 +10,16 @@ import com.projects.allnotificationblocker.blockthemall.domain.*
 import timber.log.*
 import java.util.*
 
-class RulesManager {
+/**
+ * Central rules holder.
+ *
+ * @param profileId
+ *  - null  -> global rules (currently active in the app)
+ *  - non-null -> rules that logically belong to a specific profile
+ */
+class RulesManager(
+    var profileId: Int? = null,
+) {
     var exceptions: ArrayList<String> = ArrayList<String>()
     var rules: MutableList<Rule> = mutableListOf()
 
@@ -52,6 +61,7 @@ class RulesManager {
             ruleType = Constants.RULE_TYPE_CUSTOM,
             packageName = packageName,
             isEnabled = true,
+            profileId = profileId,
         )
         if (mode == Constants.MODE_PROFILE) {
             rule.everyday = true
@@ -72,7 +82,8 @@ class RulesManager {
     }
 
     fun addPermanentRule(packageName: String) {
-        val rule = Rule.newPermenantRule(packageName)
+        // When profileId is set, the created rule will belong to that profile.
+        val rule = Rule.newPermenantRule(packageName, profileId)
         rules.add(rule)
         saveRules()
     }

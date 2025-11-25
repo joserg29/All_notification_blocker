@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.lifecycle.lifecycleScope
 import android.util.Log
 import android.util.TimingLogger
 import android.view.ContextThemeWrapper
@@ -33,6 +34,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -77,6 +79,7 @@ import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.
 import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.NotificationsAdapter.NotificationsAdapterListener
 import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.NotificationsFragment.NotificationsFragmentListener
 import com.projects.allnotificationblocker.blockthemall.R
+import com.projects.allnotificationblocker.blockthemall.Application.MyApplication
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants.RULE_BLOCK_ALL
 import com.projects.allnotificationblocker.blockthemall.Utilities.NotificationsUtil.myPackageName
@@ -89,6 +92,7 @@ import com.projects.allnotificationblocker.blockthemall.data.db.converter.Schedu
 import com.projects.allnotificationblocker.blockthemall.data.db.entities.NotificationInfo
 import com.projects.allnotificationblocker.blockthemall.data.db.entities.Profile
 import com.projects.allnotificationblocker.blockthemall.domain.AppInfo
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.system.exitProcess
 
@@ -178,23 +182,41 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
         Timber.tag("AppInfo").d("applySavedProfile")
         selectedProfileName = Prefs.getString(Constants.PARAM_SELECTED_PROFILE_NAME, "")
         Timber.tag("AppInfo").d("Saved profile name: %s", selectedProfileName)
-        if (!selectedProfileName!!.isEmpty()) {
+        if (!selectedProfileName.isNullOrEmpty()) {
             Timber.tag("AppInfo").d("Applying the saved profile")
-
             selectedProfile = getProfile(selectedProfileName)
-            if (selectedProfile != null) {
-                Timber.tag("AppInfo").d("selectedProfile: %s", selectedProfile!!.name)
-                //rulesManager.stopAllTimers(getApplicationContext());
-                rulesManager = fromJson(selectedProfile!!.rules)
-                saveRulesManager(rulesManager!!)
-                //rulesManager.startAllTimers(getApplicationContext());
-                rulesManager!!.logAllRules()
+            val profile = selectedProfile
+            if (profile != null) {
+                Timber.tag("AppInfo").d("selectedProfile: %s", profile.name)
+                applyProfileRules(profile, updatePrefs = false)
+                return
             } else {
                 Timber.tag("AppInfo").d("selectedProfile = null")
             }
         }
 
         refreshViews(true)
+    }
+
+    private fun applyProfileRules(profile: Profile, updatePrefs: Boolean) {
+        lifecycleScope.launch {
+            val dbRules = MyApplication.rulesViewModel.getRulesForProfile(profile.pkey)
+            val legacyManager = fromJson(profile.rules)
+            val manager = RulesManager().apply {
+                exceptions = legacyManager?.exceptions ?: ArrayList()
+                rules = if (dbRules.isNotEmpty()) {
+                    dbRules.map { it.copy(profileId = null) }.toMutableList()
+                } else {
+                    legacyManager?.rules ?: mutableListOf()
+                }
+            }
+            rulesManager = manager
+            saveRulesManager(rulesManager!!)
+            if (updatePrefs) {
+                Prefs.putString(Constants.PARAM_SELECTED_PROFILE_NAME, profile.name)
+            }
+            refreshViews(true)
+        }
     }
 
     private fun initView() {
@@ -890,16 +912,8 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
                 Timber.tag(TAG).d("@@@ selectedProfileName: %s", selectedProfileName)
                 val profileString = data.getStringExtra(Constants.PARAM_SELECTED_PROFILE)
                 val p = Profile.fromJson(profileString)
-                // rulesManager.stopAllTimers(getApplicationContext());
-                rulesManager = fromJson(p.rules)
-
-                Timber.tag(TAG).d("APPLIED PROFILE RULES")
-                rulesManager!!.logAllRules(TAG)
-
-                //rulesManager.startAllTimers(getApplicationContext());
-                saveRulesManager(rulesManager!!)
-                Prefs.putString(Constants.PARAM_SELECTED_PROFILE_NAME, selectedProfileName)
-                refreshViews(true)
+                selectedProfile = p
+                applyProfileRules(p, updatePrefs = true)
             }
         }
 

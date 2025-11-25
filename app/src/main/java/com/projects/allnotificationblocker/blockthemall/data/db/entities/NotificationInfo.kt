@@ -19,6 +19,7 @@ data class NotificationInfo(
     var packageName: String = "",
     var text: String? = null,
     var timestamp: String? = null,
+    var timestampEpoch: Long = 0L,
     var bigText: String = "",
     var template: String? = null,
     var type: Int = 0,
@@ -32,10 +33,11 @@ data class NotificationInfo(
     var oldNotification: Boolean = false,
     var isBlocked: Boolean = false,
     var priority: Int = 0,
+    var postTimeEpoch: Long = 0L,
 ): Comparable<NotificationInfo?> {
     override fun compareTo(other: NotificationInfo?): Int {
-        val otherTimestamp = other?.timestamp ?: return 1
-        val thisTimestamp = this.timestamp ?: return -1
+        val otherTimestamp = other?.postTimeEpoch ?: return 1
+        val thisTimestamp = this.postTimeEpoch
         return otherTimestamp.compareTo(thisTimestamp)
     }
 
@@ -183,6 +185,7 @@ data class NotificationInfo(
                         packageName = intent.getStringExtra("package_name")!!,
                         text = intent.getStringExtra("text"),
                         timestamp = intent.getStringExtra("timestamp"),
+                        timestampEpoch = intent.getLongExtra("timestamp_epoch", System.currentTimeMillis()),
                         bigText = intent.getStringExtra("bigText") ?: "",
                         template = intent.getStringExtra("template"),
                         subText = intent.getStringExtra("subText"),
@@ -190,6 +193,7 @@ data class NotificationInfo(
                         number = intent.getIntExtra("number", -1),
                         notificationGroup = intent.getStringExtra("notification_group"),
                         postTime = intent.getStringExtra("posttime"),
+                        postTimeEpoch = intent.getLongExtra("posttime_epoch", System.currentTimeMillis()),
                         oldNotification = intent.getBooleanExtra("is_old", false),
                         isBlocked = intent.getBooleanExtra("is_blocked", false),
                         priority = intent.getIntExtra(
@@ -279,7 +283,9 @@ data class NotificationInfo(
                 "timestamp",
                 DateTimeUtil.LongToDateString(notification.notification.`when`)
             )
+            intent.putExtra("timestamp_epoch", notification.notification.`when`)
             intent.putExtra("posttime", notification.postTime.toString())
+            intent.putExtra("posttime_epoch", notification.postTime)
             intent.putExtra("notification_group", notification.notification.group)
 
             intent.putExtra("is_old", isOld)

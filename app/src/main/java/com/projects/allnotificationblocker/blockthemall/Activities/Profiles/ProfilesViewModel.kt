@@ -11,19 +11,19 @@ class ProfilesViewModel(application: Application): AndroidViewModel(application)
 
     val allRecords: LiveData<MutableList<Profile>> = repository.getAllRecords()
 
-    fun insert(record: Profile) = viewModelScope.launch {
-        repository.insert(record)
+    suspend fun insert(record: Profile): Long {
+        return repository.insert(record)
     }
 
-    fun update(record: Profile) = viewModelScope.launch {
+    suspend fun update(record: Profile) {
         repository.update(record)
     }
 
-    fun delete(record: Profile) = viewModelScope.launch {
+    suspend fun delete(record: Profile) {
         repository.delete(record)
     }
 
-    fun deleteAllRecords() = viewModelScope.launch {
+    suspend fun deleteAllRecords() {
         repository.deleteAllRecords()
     }
 }
