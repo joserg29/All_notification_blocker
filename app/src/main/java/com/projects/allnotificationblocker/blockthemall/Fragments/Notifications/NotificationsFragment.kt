@@ -1,7 +1,6 @@
 package com.projects.allnotificationblocker.blockthemall.Fragments.Notifications
 
 import android.content.*
-import android.media.*
 import android.os.*
 import android.text.*
 import android.view.*
@@ -266,16 +265,12 @@ class NotificationsFragment: Fragment() {
 
             val myNotification = NotificationInfo.createFromIntent(intent)
 
-            if (true) {
-                muteAudio()
+            val shouldMuteForNotification = myNotification.isBlocked || myNotification.isSocialAppCall
+            if (shouldMuteForNotification) {
+                AudioSilencer.pulseMute()
             }
             if (myNotification.isSocialAppCallEnd) {
-                UnMuteAudio()
-            }
-            if (myNotification.isWhatsApp &&
-                myNotification.text == "Incoming voice call"
-            ) {
-                muteAudio()
+                AudioSilencer.releasePulseImmediately()
             }
             when (myNotification.type) {
                 Constants.DATA_TYPE_APPLICATION -> {
@@ -309,91 +304,5 @@ class NotificationsFragment: Fragment() {
             val fragment = NotificationsFragment()
             return fragment
         }
-        fun muteAudio() {
-            Timber.tag("AppInfo").d("muteAudio")
-            Timber.tag("AppInfo").d("Checking if phone is already silent")
-            if (this.isSilent) {
-                return
-            }
-
-            mute_audio = true
-            Timber.tag("AppInfo").d("Muting audio")
-            val audioManager = MyApplication.context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                audioManager.adjustStreamVolume(
-                    AudioManager.STREAM_NOTIFICATION,
-                    AudioManager.ADJUST_MUTE, 0
-                )
-                audioManager.adjustStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_MUTE, 0)
-            } else {
-                Objects.requireNonNull<AudioManager?>(audioManager)
-                    .setStreamMute(AudioManager.STREAM_NOTIFICATION, true)
-                audioManager.setStreamMute(AudioManager.STREAM_RING, true)
-            }
-        }
-
-        fun UnMuteAudio() {
-            Timber.tag("AppInfo").d("UnMuteAudio")
-            Timber.tag("AppInfo").d("Check if device is muted by our app: %s", mute_audio)
-            if (!mute_audio) {
-                return
-            }
-
-            mute_audio = false
-
-            Timber.tag("AppInfo").d("Unmuting Audio")
-            val alarmManager =
-                MyApplication.context.getSystemService(Context.AUDIO_SERVICE) as AudioManager?
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                Objects.requireNonNull<AudioManager?>(alarmManager)
-                    .adjustStreamVolume(AudioManager.STREAM_NOTIFICATION, AudioManager.ADJUST_UNMUTE, 0)
-                alarmManager!!.adjustStreamVolume(
-                    AudioManager.STREAM_ALARM,
-                    AudioManager.ADJUST_UNMUTE,
-                    0
-                )
-                alarmManager.adjustStreamVolume(
-                    AudioManager.STREAM_MUSIC,
-                    AudioManager.ADJUST_UNMUTE,
-                    0
-                )
-                alarmManager.adjustStreamVolume(
-                    AudioManager.STREAM_RING,
-                    AudioManager.ADJUST_UNMUTE,
-                    0
-                )
-                alarmManager.adjustStreamVolume(
-                    AudioManager.STREAM_SYSTEM,
-                    AudioManager.ADJUST_UNMUTE,
-                    0
-                )
-            } else {
-                Objects.requireNonNull<AudioManager?>(alarmManager)
-                    .setStreamMute(AudioManager.STREAM_NOTIFICATION, false)
-                alarmManager!!.setStreamMute(AudioManager.STREAM_ALARM, false)
-                alarmManager.setStreamMute(AudioManager.STREAM_MUSIC, false)
-                alarmManager.setStreamMute(AudioManager.STREAM_RING, false)
-                alarmManager.setStreamMute(AudioManager.STREAM_SYSTEM, false)
-            }
-        }
-
-        var mute_audio: Boolean = false
-        val isSilent: Boolean
-            get() {
-                Timber.tag("AppInfo").d("isSilent")
-                val mAlramMAnager =
-                    MyApplication.context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-
-                val b =
-                    mAlramMAnager.getStreamVolume(AudioManager.STREAM_RING) == AudioManager.ADJUST_MUTE
-
-                if (b) {
-                    Timber.tag("AppInfo").d("Mobile device is silent")
-                } else {
-                    Timber.tag("AppInfo").d("Mobile device is not silent")
-                }
-                return b
-            }
-
     }
 }

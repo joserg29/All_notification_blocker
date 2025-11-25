@@ -220,7 +220,7 @@ class SelectProfileActivity: AppCompatActivity(), View.OnClickListener {
                             Prefs.putString(Constants.PARAM_SELECTED_PROFILE_NAME, "")
                         }
                         lifecycleScope.launch {
-                            viewModel!!.delete(profile)
+                        viewModel!!.delete(profile)
                         }
                     }
                 })

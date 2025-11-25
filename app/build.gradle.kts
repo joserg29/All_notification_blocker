@@ -118,14 +118,14 @@ android {
             // Save updated properties
             versionProps.setProperty("VERSION_MAJOR", versionMajor.toString())
             versionProps.setProperty("VERSION_MINOR", versionMinor.toString())
-            versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
-            versionPropsFile.writer().use { versionProps.store(it, null) }
+                versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
+                versionPropsFile.writer().use { versionProps.store(it, null) }
             
-            versionCode = versionBuild
-            versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
-            applicationIdSuffix = ".free"
-            versionNameSuffix = "-free"
-            setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
+                versionCode = versionBuild
+                versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
+                applicationIdSuffix = ".free"
+                versionNameSuffix = "-free"
+                setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
         }
         create("pro") {
             dimension = "version"
@@ -151,14 +151,14 @@ android {
             // Save updated properties
             versionProps.setProperty("VERSION_MAJOR", versionMajor.toString())
             versionProps.setProperty("VERSION_MINOR", versionMinor.toString())
-            versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
-            versionPropsFile.writer().use { versionProps.store(it, null) }
+                versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
+                versionPropsFile.writer().use { versionProps.store(it, null) }
             
-            versionCode = versionBuild
-            versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
-            applicationIdSuffix = ".pro"
-            versionNameSuffix = "-pro"
-            setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
+                versionCode = versionBuild
+                versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
+                applicationIdSuffix = ".pro"
+                versionNameSuffix = "-pro"
+                setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
         }
     }
 

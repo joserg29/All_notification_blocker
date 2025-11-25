@@ -80,6 +80,7 @@ import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.
 import java.util.concurrent.TimeUnit
 import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Application.MyApplication
+import com.projects.allnotificationblocker.blockthemall.Utilities.BlockingAudioCoordinator
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants.RULE_BLOCK_ALL
 import com.projects.allnotificationblocker.blockthemall.Utilities.NotificationsUtil.myPackageName
@@ -744,6 +745,8 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
 
         saveRulesManager(rulesManager!!)
         timings.addSplit("Util.saveRulesManager(rulesManager);")
+        BlockingAudioCoordinator.syncWithRules(this, rulesManager!!)
+        timings.addSplit("BlockingAudioCoordinator.syncWithRules")
         
         // Ensure service is running and trigger immediate cancellation
         ensureServiceRunningAndCancelNotifications()
@@ -802,7 +805,7 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
             setMoreButtonStatus(mImageButtonMore!!, false)
             textViewBlockAllTitle!!.setText(R.string.block_all_notifications_calls)
         }
-
+        BlockingAudioCoordinator.syncWithRules(this, rulesManager!!)
 
         switchBlock.setOnCheckedChangeListener(this)
     }

@@ -3,7 +3,9 @@ package com.projects.allnotificationblocker.blockthemall.Utilities.scheduler
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.projects.allnotificationblocker.blockthemall.Utilities.BlockingAudioCoordinator
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants
+import com.projects.allnotificationblocker.blockthemall.Utilities.NotificationServiceGuard
 import com.projects.allnotificationblocker.blockthemall.Utilities.Util
 import com.projects.allnotificationblocker.blockthemall.data.db.converter.ScheduleConverters
 import java.util.Date
@@ -49,6 +51,8 @@ class ScheduleAlarmReceiver : BroadcastReceiver() {
         }
 
         Util.saveRulesManager(rulesManager)
+        BlockingAudioCoordinator.syncWithRules(context, rulesManager)
+        NotificationServiceGuard.ensureServiceRunning(context)
     }
 }
 

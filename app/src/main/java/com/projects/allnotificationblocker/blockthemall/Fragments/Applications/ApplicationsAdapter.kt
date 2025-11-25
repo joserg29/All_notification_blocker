@@ -196,27 +196,27 @@ class ApplicationsAdapter(
                 appInfo.isEnabled = true
             } else if (hasPermanentRule) {
                 // App has permanent block rule
-                genericAppInfoViewHolder.textViewRules!!.setText(R.string.always_block)
-                genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = true
-                genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_block)
-                genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
-                    ContextCompat.getColor(
-                        MyApplication.context,
-                        R.color.red
-                    ), PorterDuff.Mode.SRC_IN
-                )
+                    genericAppInfoViewHolder.textViewRules!!.setText(R.string.always_block)
+                    genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = true
+                    genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_block)
+                    genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
+                        ContextCompat.getColor(
+                            MyApplication.context,
+                            R.color.red
+                        ), PorterDuff.Mode.SRC_IN
+                    )
                 appInfo.isEnabled = true
-            } else {
+                } else {
                 // App has no rules - not blocked
-                genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = false
-                genericAppInfoViewHolder.textViewRules!!.setText(R.string.no_schedules_applied)
-                genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_check)
-                genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
-                    ContextCompat.getColor(
-                        MyApplication.context,
-                        R.color.green
-                    ), PorterDuff.Mode.SRC_IN
-                )
+                    genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = false
+                    genericAppInfoViewHolder.textViewRules!!.setText(R.string.no_schedules_applied)
+                    genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_check)
+                    genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
+                        ContextCompat.getColor(
+                            MyApplication.context,
+                            R.color.green
+                        ), PorterDuff.Mode.SRC_IN
+                    )
                 appInfo.isEnabled = false
             }
         }

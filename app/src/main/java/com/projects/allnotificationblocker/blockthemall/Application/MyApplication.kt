@@ -13,6 +13,8 @@ import com.projects.allnotificationblocker.blockthemall.BuildConfig
 import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Utilities.*
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants.CHANNEL_ID
+import com.projects.allnotificationblocker.blockthemall.Utilities.BlockingAudioCoordinator
+import com.projects.allnotificationblocker.blockthemall.Utilities.NotificationServiceGuard
 import com.projects.allnotificationblocker.blockthemall.Utilities.scheduler.RuleScheduler
 import com.projects.allnotificationblocker.blockthemall.data.repo.*
 import com.projects.allnotificationblocker.blockthemall.domain.*
@@ -47,11 +49,14 @@ class MyApplication: MultiDexApplication() {
 
         Util.loadRulesManager()?.let {
             RuleScheduler.rescheduleAll(this, it.rules)
+            BlockingAudioCoordinator.syncWithRules(this, it)
         }
 
         if (STORE_NOTIFICATIONS) {
             Prefs.putString(Constants.PARAM_NOTIFICATIONS_MANAGER, "")
         }
+
+        NotificationServiceGuard.ensureServiceRunning(this)
     }
 
 

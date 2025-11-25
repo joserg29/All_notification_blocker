@@ -67,9 +67,9 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
         val intent = intent
         selectedProfileName = intent?.getStringExtra(Constants.PARAM_SELECTED_PROFILE_NAME)
         val profileString = intent?.getStringExtra(Constants.PARAM_SELECTED_PROFILE)
-        if (profileString != null) {
-            Timber.tag("AppInfo").d("profileString: %s", profileString)
-            selectedProfile = Profile.fromJson(profileString)
+            if (profileString != null) {
+                Timber.tag("AppInfo").d("profileString: %s", profileString)
+                selectedProfile = Profile.fromJson(profileString)
         }
         loadRulesForProfile(selectedProfile)
     }
@@ -217,7 +217,6 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
         } else {
             rulesManager!!.disableRule(RULE_BLOCK_ALL)
         }
-
         refreshViews()
     }
 
@@ -234,8 +233,6 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
             setMoreButtonStatus(mImageButtonMore!!, false)
             textViewBlockAllTitle!!.setText(R.string.block_all_notifications_calls)
         }
-
-
         switchBlock!!.setOnCheckedChangeListener(this)
     }
 
@@ -411,8 +408,8 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
         selectedProfile = profile.copy(pkey = newId)
         selectedProfileName = name
         persistRulesForProfile(newId)
-        finish()
-    }
+                    finish()
+                }
 
     private suspend fun updateProfile(profile: Profile) {
         val updatedProfile = profile.copy(rules = rulesManager!!.toJson())

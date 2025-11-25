@@ -9,7 +9,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.*
 import com.projects.allnotificationblocker.blockthemall.Activities.Rules.*
 import com.projects.allnotificationblocker.blockthemall.R
+import com.projects.allnotificationblocker.blockthemall.Utilities.BackgroundAppController
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants.CHANNEL_ID
+import com.projects.allnotificationblocker.blockthemall.Utilities.NotificationServiceGuard
 import com.projects.allnotificationblocker.blockthemall.Utilities.Util.loadRulesManager
 import com.projects.allnotificationblocker.blockthemall.data.db.entities.NotificationInfo.Companion.prepareIntent
 import timber.log.*
@@ -43,13 +45,12 @@ class MyNotListenerService: NotificationListenerService() {
         fun getInstance(): MyNotListenerService? = serviceInstance
         
         fun startService(context: Context, action: Actions = Actions.Enable) {
-            if (isServiceRunning) {
+            if (serviceInstance != null) {
                 Timber.tag(TAG).d("Service is already running")
                 // Even if running, trigger immediate cancellation
                 serviceInstance?.cancelAllBlockedNotifications()
                 return
             }
-            isServiceRunning = true
             Timber.tag(TAG).d("Starting NotificationListenerService")
             val notificationsServiceIntent = Intent(
                 context,
@@ -78,19 +79,20 @@ class MyNotListenerService: NotificationListenerService() {
         }
 
         fun stopService(context: Context) {
-            if (!isServiceRunning)
+            if (serviceInstance == null)
                 return
             Timber.tag(TAG).d("Stoping NotificationListenerService")
             val intent = Intent(context, MyNotListenerService::class.java)
             context.stopService(intent)
-            isServiceRunning = false
             serviceInstance = null
+            isServiceRunning = false
         }
     }
 
     override fun onCreate() {
         super.onCreate()
         Timber.tag(TAG).d("onCreate")
+        isServiceRunning = true
         serviceInstance = this
         try {
             registerRulesChangeReceiver()
@@ -167,6 +169,7 @@ class MyNotListenerService: NotificationListenerService() {
                             cancelNotification(sbn.key)
                             cancelledCount++
                             Timber.tag(TAG).d("Cancelled notification from: %s", packageName)
+                            BackgroundAppController.closeApp(applicationContext, packageName)
                         } catch (e: SecurityException) {
                             Timber.tag(TAG).w("SecurityException cancelling notification from: %s", packageName)
                         } catch (e: Exception) {
@@ -233,6 +236,7 @@ class MyNotListenerService: NotificationListenerService() {
         
         // Clear service instance
         serviceInstance = null
+        isServiceRunning = false
         
         // Unregister broadcast receiver
         rulesChangeReceiver?.let {
@@ -249,6 +253,23 @@ class MyNotListenerService: NotificationListenerService() {
         } else {
             stopForeground(true)
         }
+    }
+
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+        Timber.tag(TAG).w("Notification listener disconnected, attempting to rebind.")
+        isServiceRunning = false
+        serviceInstance = null
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                requestRebind(ComponentName(this, MyNotListenerService::class.java))
+            }
+        } catch (t: Throwable) {
+            Timber.tag(TAG).e(t, "Failed to request rebind")
+        }
+        Handler(Looper.getMainLooper()).postDelayed({
+            NotificationServiceGuard.ensureServiceRunning(applicationContext)
+        }, 1000L)
     }
 
 
@@ -277,29 +298,19 @@ class MyNotListenerService: NotificationListenerService() {
             if (sbn.packageName == packageName) {
                 return
             }
+            val sourcePackage = sbn.packageName ?: return
             rulesManager = loadRulesManager()
             if (rulesManager == null) {
                 Timber.tag(TAG).w("RulesManager is null, allowing notification")
                 return
             }
-            NotificationsFragment.onReceive(prepareIntent(sbn, true, true))
-            val extras = sbn.notification.extras
-            val b = extras?.get(Notification.EXTRA_MESSAGES) as? Array<*>
-            if (b != null) {
-                var content = ""
-                for (tmp in b) {
-                    val msgBundle = tmp as? Bundle
-                    if (msgBundle != null) {
-                        content = (msgBundle.getString("text") ?: "") + "\n"
-                    }
-                }
-
-                Timber.tag(TAG).d("content: %s", content)
-            }
-            val isAllowed = rulesManager?.isAllowed(sbn.packageName) ?: true
+            val isAllowed = rulesManager?.isAllowed(sourcePackage) ?: true
+            val intent = prepareIntent(sbn, false, !isAllowed)
+            NotificationsFragment.onReceive(intent)
             if (!isAllowed) {
                 try {
                     cancelNotification(sbn.key)
+                    BackgroundAppController.closeApp(applicationContext, sourcePackage)
                 } catch (e: SecurityException) {
                     Timber.tag(TAG).w("SecurityException cancelling notification")
                 } catch (e: Exception) {
