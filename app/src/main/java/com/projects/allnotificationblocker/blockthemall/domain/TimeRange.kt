@@ -9,49 +9,73 @@ data class TimeRange(
     val endHour: Int,
     val endMin: Int,
 ) {
+
+    private fun toMinutes(hour: Int, minute: Int) = hour * 60 + minute
+
+    private fun Calendar.currentMinutes(): Int =
+        get(Calendar.HOUR_OF_DAY) * 60 + get(Calendar.MINUTE)
+
+    fun startMinutes(): Int = toMinutes(startHour, startMin)
+    fun endMinutes(): Int = toMinutes(endHour, endMin)
+
+    fun spansMidnight(): Boolean = isComplete() && endMinutes() <= startMinutes()
+
     fun isBetween(date: Date): Boolean {
-        val calendar = Calendar.getInstance().apply {
-            time = date
+        if (!isComplete()) return false
+
+        val calendar = Calendar.getInstance().apply { time = date }
+        val currentMinutes = calendar.currentMinutes()
+
+        val start = startMinutes()
+        val end = endMinutes()
+
+        return if (spansMidnight()) {
+            currentMinutes >= start || currentMinutes < end
+        } else {
+            currentMinutes in start..end
         }
-
-        val currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE)
-        val startMinutes = startHour * 60 + startMin
-        val endMinutes = endHour * 60 + endMin
-
-        return currentMinutes in startMinutes..endMinutes
     }
 
     fun isComplete(): Boolean {
         return startHour != -1 && startMin != -1 && endHour != -1 && endMin != -1
     }
-    fun isOutDated(date: Date=Date()): Boolean {
-        val calendar = Calendar.getInstance().apply {
-            time = date
-        }
-        val currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE)
-        val endMinutes = endHour * 60 + endMin
 
-        return currentMinutes > endMinutes
+    fun isOutDated(date: Date = Date()): Boolean {
+        if (!isComplete()) return true
+
+        val calendar = Calendar.getInstance().apply { time = date }
+        val currentMinutes = calendar.currentMinutes()
+        val start = startMinutes()
+        val end = endMinutes()
+
+        return if (spansMidnight()) {
+            currentMinutes > end && currentMinutes < start
+        } else {
+            currentMinutes > end
+        }
     }
 
     fun isInvalid(): Boolean {
         if (!isComplete()) {
             return true
         }
-        if (startHour > endHour) {
+        val hoursValid = listOf(startHour, endHour).all { it in 0..23 }
+        val minutesValid = listOf(startMin, endMin).all { it in 0..59 }
+        if (!hoursValid || !minutesValid) {
             return true
         }
-        if (startHour == endHour && startMin > endMin) {
+        // Disallow zero-length ranges
+        if (startHour == endHour && startMin == endMin) {
             return true
         }
         return false
     }
 
     fun getTimeDuration(): String {
-        val startTotalMinutes = startHour * 60 + startMin
-        val endTotalMinutes = endHour * 60 + endMin
+        val startTotalMinutes = startMinutes()
+        val endTotalMinutes = endMinutes()
         var diffMinutes = endTotalMinutes - startTotalMinutes
-        if (diffMinutes < 0) diffMinutes += 24 * 60 // Handle overnight ranges
+        if (diffMinutes <= 0) diffMinutes += 24 * 60 // Handle overnight ranges
         val hours = diffMinutes / 60
         val minutes = diffMinutes % 60
         return String.format("%02d:%02d", hours, minutes)

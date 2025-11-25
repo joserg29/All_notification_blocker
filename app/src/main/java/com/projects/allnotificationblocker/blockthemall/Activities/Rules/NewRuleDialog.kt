@@ -192,6 +192,8 @@ class NewRuleDialog: DialogFragment() {
         } else {
             binding.timeDurationTv.visibility = View.GONE
         }
+        val spansMidnight = schedule.timeRange?.let { !it.isInvalid() && it.spansMidnight() } == true
+        binding.spansMidnightTv.visibility = if (spansMidnight) View.VISIBLE else View.GONE
         val repeat = binding.repeatCheckBox.isChecked
         if (schedule.isValid(Date())) {
             binding.buttonYes.isEnabled = true

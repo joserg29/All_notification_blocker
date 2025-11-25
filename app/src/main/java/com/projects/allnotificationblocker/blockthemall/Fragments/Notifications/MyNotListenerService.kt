@@ -18,6 +18,7 @@ class MyNotListenerService: NotificationListenerService() {
     var rulesManager: RulesManager? = null
     var action: String? = ""
     private var activeNotification = mutableListOf<StatusBarNotification>()
+    private var rulesChangeReceiver: BroadcastReceiver? = null
 
     enum class Actions(val value: String) {
         Enable("enable"), DeleteAll("delete_all")
@@ -32,12 +33,20 @@ class MyNotListenerService: NotificationListenerService() {
     }
 
     companion object {
+        const val ACTION_RULES_CHANGED = "com.projects.allnotificationblocker.blockthemall.RULES_CHANGED"
         private const val NOTIFICATION_ID = 1
         var isServiceRunning = false
         const val TAG = "NService"
-        fun                 startService(context: Context, action: Actions = Actions.Enable) {
+        @Volatile
+        private var serviceInstance: MyNotListenerService? = null
+        
+        fun getInstance(): MyNotListenerService? = serviceInstance
+        
+        fun startService(context: Context, action: Actions = Actions.Enable) {
             if (isServiceRunning) {
                 Timber.tag(TAG).d("Service is already running")
+                // Even if running, trigger immediate cancellation
+                serviceInstance?.cancelAllBlockedNotifications()
                 return
             }
             isServiceRunning = true
@@ -53,6 +62,20 @@ class MyNotListenerService: NotificationListenerService() {
                 context.startService(notificationsServiceIntent)
             }
         }
+        
+        fun triggerImmediateCancellation(context: Context) {
+            // Try direct call first if service is running
+            serviceInstance?.cancelAllBlockedNotifications()
+            // Also send broadcast as backup
+            try {
+                val intent = Intent(ACTION_RULES_CHANGED)
+                intent.setPackage(context.packageName)
+                context.sendBroadcast(intent)
+                Timber.tag(TAG).d("Sent immediate cancellation broadcast")
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error sending immediate cancellation broadcast")
+            }
+        }
 
         fun stopService(context: Context) {
             if (!isServiceRunning)
@@ -61,13 +84,103 @@ class MyNotListenerService: NotificationListenerService() {
             val intent = Intent(context, MyNotListenerService::class.java)
             context.stopService(intent)
             isServiceRunning = false
+            serviceInstance = null
         }
     }
 
     override fun onCreate() {
         super.onCreate()
         Timber.tag(TAG).d("onCreate")
-
+        serviceInstance = this
+        try {
+            registerRulesChangeReceiver()
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error registering rules change receiver")
+        }
+    }
+    
+    private fun registerRulesChangeReceiver() {
+        try {
+            rulesChangeReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    Timber.tag(TAG).d("Rules changed broadcast received - reloading and cancelling notifications immediately")
+                    // Cancel immediately without delay
+                    try {
+                        cancelAllBlockedNotifications()
+                    } catch (e: Exception) {
+                        Timber.tag(TAG).e(e, "Error in broadcast receiver onReceive")
+                    }
+                }
+            }
+            val filter = IntentFilter(ACTION_RULES_CHANGED)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(rulesChangeReceiver, filter, Context.RECEIVER_EXPORTED)
+            } else {
+                @Suppress("DEPRECATION")
+                registerReceiver(rulesChangeReceiver, filter)
+            }
+            Timber.tag(TAG).d("Rules change receiver registered successfully")
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error in registerRulesChangeReceiver - continuing without broadcast receiver")
+            rulesChangeReceiver = null
+        }
+    }
+    
+    fun cancelAllBlockedNotifications() {
+        try {
+            // Reload rules to get latest state
+            rulesManager = loadRulesManager()
+            if (rulesManager == null) {
+                Timber.tag(TAG).w("RulesManager is null, cannot cancel notifications")
+                return
+            }
+            
+            // Get all active notifications - check if service is connected first
+            val activeNotifications = try {
+                getActiveNotifications()
+            } catch (e: SecurityException) {
+                Timber.tag(TAG).w("SecurityException getting active notifications: %s", e.message)
+                return
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error getting active notifications")
+                return
+            }
+            
+            if (activeNotifications == null || activeNotifications.isEmpty()) {
+                Timber.tag(TAG).d("No active notifications to check")
+                return
+            }
+            
+            var cancelledCount = 0
+            for (sbn in activeNotifications) {
+                try {
+                    // Skip system UI and our own app
+                    val packageName = sbn.packageName ?: continue
+                    if (packageName == "com.android.systemui" || packageName == this.packageName) {
+                        continue
+                    }
+                    
+                    // Check if this notification should be blocked
+                    val isAllowed = rulesManager?.isAllowed(packageName) ?: true
+                    if (!isAllowed) {
+                        try {
+                            cancelNotification(sbn.key)
+                            cancelledCount++
+                            Timber.tag(TAG).d("Cancelled notification from: %s", packageName)
+                        } catch (e: SecurityException) {
+                            Timber.tag(TAG).w("SecurityException cancelling notification from: %s", packageName)
+                        } catch (e: Exception) {
+                            Timber.tag(TAG).e(e, "Error cancelling notification from: %s", packageName)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.tag(TAG).e(e, "Error processing notification")
+                }
+            }
+            Timber.tag(TAG).d("Cancelled %d blocked notifications", cancelledCount)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error in cancelAllBlockedNotifications")
+        } 
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -117,6 +230,19 @@ class MyNotListenerService: NotificationListenerService() {
     override fun onDestroy() {
         super.onDestroy()
         Timber.tag(TAG).d("NotificationListenerService is destroyed")
+        
+        // Clear service instance
+        serviceInstance = null
+        
+        // Unregister broadcast receiver
+        rulesChangeReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error unregistering rules change receiver")
+            }
+            rulesChangeReceiver = null
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -130,36 +256,58 @@ class MyNotListenerService: NotificationListenerService() {
         super.onListenerConnected()
         try {
             activeNotification = getActiveNotifications()?.toMutableList() ?: mutableListOf()
+            // Cancel any blocked notifications immediately when service connects
+            try {
+                cancelAllBlockedNotifications()
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error cancelling notifications in onListenerConnected")
+            }
         } catch (ex: Exception) {
-            Timber.tag(TAG).d("Error: %s", ex.message)
-            throw ex
+            Timber.tag(TAG).e(ex, "Error in onListenerConnected: %s", ex.message)
+            // Don't throw - just log the error to prevent service crash
         }
 
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        if (sbn.packageName == "com.android.systemui") {
-            return
-        }
-        if (sbn.packageName == packageName) {
-            return
-        }
-        rulesManager = loadRulesManager()
-        NotificationsFragment.onReceive(prepareIntent(sbn, true, true))
-        val extras = sbn.notification.extras
-        val b = extras.get(Notification.EXTRA_MESSAGES) as Array<*>?
-        if (b != null) {
-            var content = ""
-            for (tmp in b) {
-                val msgBundle = tmp as Bundle
-                content = msgBundle.getString("text") + "\n"
+        try {
+            if (sbn.packageName == "com.android.systemui") {
+                return
             }
+            if (sbn.packageName == packageName) {
+                return
+            }
+            rulesManager = loadRulesManager()
+            if (rulesManager == null) {
+                Timber.tag(TAG).w("RulesManager is null, allowing notification")
+                return
+            }
+            NotificationsFragment.onReceive(prepareIntent(sbn, true, true))
+            val extras = sbn.notification.extras
+            val b = extras?.get(Notification.EXTRA_MESSAGES) as? Array<*>
+            if (b != null) {
+                var content = ""
+                for (tmp in b) {
+                    val msgBundle = tmp as? Bundle
+                    if (msgBundle != null) {
+                        content = (msgBundle.getString("text") ?: "") + "\n"
+                    }
+                }
 
-            Timber.tag(TAG).d("content: %s", content)
-        }
-        val isAllowed = rulesManager!!.isAllowed(sbn.packageName)
-        if (!isAllowed) {
-            cancelNotification(sbn.key)
+                Timber.tag(TAG).d("content: %s", content)
+            }
+            val isAllowed = rulesManager?.isAllowed(sbn.packageName) ?: true
+            if (!isAllowed) {
+                try {
+                    cancelNotification(sbn.key)
+                } catch (e: SecurityException) {
+                    Timber.tag(TAG).w("SecurityException cancelling notification")
+                } catch (e: Exception) {
+                    Timber.tag(TAG).e(e, "Error cancelling notification")
+                }
+            }
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error in onNotificationPosted")
         }
     }
 

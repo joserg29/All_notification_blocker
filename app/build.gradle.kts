@@ -100,21 +100,32 @@ android {
             val versionPropsFile = file("version.properties")
             resValue("string", "app_name", "All Notification Blocker")
             buildConfigField("Boolean", "IS_PRO", "false")
+            
+            val versionProps = Properties()
             if (versionPropsFile.exists()) {
-                val versionProps = Properties().apply {
-                    versionPropsFile.inputStream().use { load(it) }
+                try {
+                    versionPropsFile.inputStream().use { versionProps.load(it) }
+                } catch (e: Exception) {
+                    // File exists but may be corrupted, use defaults
                 }
-                versionMajor = versionProps.getProperty("VERSION_MAJOR").toInt()
-                versionMinor = versionProps.getProperty("VERSION_MINOR").toInt()
-                versionBuild = versionProps.getProperty("VERSION_BUILD").toInt() + 1
-                versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
-                versionPropsFile.writer().use { versionProps.store(it, null) }
-                versionCode = versionBuild
-                versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
-                applicationIdSuffix = ".free"
-                versionNameSuffix = "-free"
-                setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
             }
+            
+            // Get properties with defaults
+            versionMajor = versionProps.getProperty("VERSION_MAJOR")?.toIntOrNull() ?: 1
+            versionMinor = versionProps.getProperty("VERSION_MINOR")?.toIntOrNull() ?: 0
+            versionBuild = (versionProps.getProperty("VERSION_BUILD")?.toIntOrNull() ?: 0) + 1
+            
+            // Save updated properties
+            versionProps.setProperty("VERSION_MAJOR", versionMajor.toString())
+            versionProps.setProperty("VERSION_MINOR", versionMinor.toString())
+            versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
+            versionPropsFile.writer().use { versionProps.store(it, null) }
+            
+            versionCode = versionBuild
+            versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
+            applicationIdSuffix = ".free"
+            versionNameSuffix = "-free"
+            setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
         }
         create("pro") {
             dimension = "version"
@@ -123,22 +134,31 @@ android {
             resValue("string", "app_name", "All Notification Blocker (PRO)")
             buildConfigField("Boolean", "IS_PRO", "true")
 
+            val versionProps = Properties()
             if (versionPropsFile.exists()) {
-                val versionProps = Properties().apply {
-                    versionPropsFile.inputStream().use { load(it) }
+                try {
+                    versionPropsFile.inputStream().use { versionProps.load(it) }
+                } catch (e: Exception) {
+                    // File exists but may be corrupted, use defaults
                 }
-
-                versionMajor = versionProps.getProperty("VERSION_MAJOR").toInt()
-                versionMinor = versionProps.getProperty("VERSION_MINOR").toInt()
-                versionBuild = versionProps.getProperty("VERSION_BUILD").toInt() + 1
-                versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
-                versionPropsFile.writer().use { versionProps.store(it, null) }
-                versionCode = versionBuild
-                versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
-                applicationIdSuffix = ".pro"
-                versionNameSuffix = "-pro"
-                setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
             }
+            
+            // Get properties with defaults
+            versionMajor = versionProps.getProperty("VERSION_MAJOR")?.toIntOrNull() ?: 1
+            versionMinor = versionProps.getProperty("VERSION_MINOR")?.toIntOrNull() ?: 0
+            versionBuild = (versionProps.getProperty("VERSION_BUILD")?.toIntOrNull() ?: 0) + 1
+            
+            // Save updated properties
+            versionProps.setProperty("VERSION_MAJOR", versionMajor.toString())
+            versionProps.setProperty("VERSION_MINOR", versionMinor.toString())
+            versionProps.setProperty("VERSION_BUILD", versionBuild.toString())
+            versionPropsFile.writer().use { versionProps.store(it, null) }
+            
+            versionCode = versionBuild
+            versionName = "${versionMajor}.${versionMinor}.${"%05d".format(versionBuild)}"
+            applicationIdSuffix = ".pro"
+            versionNameSuffix = "-pro"
+            setProperty("archivesBaseName", "AllNotificationBlocker-$versionName")
         }
     }
 

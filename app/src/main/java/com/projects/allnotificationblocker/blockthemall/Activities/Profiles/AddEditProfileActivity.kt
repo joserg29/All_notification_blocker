@@ -20,6 +20,7 @@ import com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesMa
 import com.projects.allnotificationblocker.blockthemall.Dialogs.*
 import com.projects.allnotificationblocker.blockthemall.Dialogs.ProfileNameDialog.*
 import com.projects.allnotificationblocker.blockthemall.Fragments.Applications.ApplicationsFragment.*
+import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.MyNotListenerService
 import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.NotificationsAdapter.*
 import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Utilities.*
@@ -232,8 +233,32 @@ class AddEditProfileActivity: AppCompatActivity(), View.OnClickListener,
         } else {
             rulesManager!!.disableRule(RULE_BLOCK_ALL)
         }
+        
+        // Save rules and notify notification service immediately
+        Util.saveRulesManager(rulesManager!!)
+        ensureServiceRunningAndCancelNotifications()
 
         refreshViews()
+    }
+    
+    private fun ensureServiceRunningAndCancelNotifications() {
+        try {
+            // Ensure service is running first
+            if (!MyNotListenerService.isServiceRunning) {
+                Timber.tag("AppInfo").d("Service not running, starting it...")
+                MyNotListenerService.startService(applicationContext, MyNotListenerService.Actions.Enable)
+                // Give it a moment to start, then trigger cancellation
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    MyNotListenerService.triggerImmediateCancellation(applicationContext)
+                }, 100)
+            } else {
+                // Service is running, trigger immediate cancellation
+                MyNotListenerService.triggerImmediateCancellation(applicationContext)
+            }
+            Timber.tag("AppInfo").d("Triggered immediate notification cancellation")
+        } catch (e: Exception) {
+            Timber.tag("AppInfo").e(e, "Error ensuring service running and cancelling notifications")
+        }
     }
 
     private fun refreshBlockAllSwitch() {

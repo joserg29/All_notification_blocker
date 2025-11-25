@@ -15,6 +15,7 @@ import com.projects.allnotificationblocker.blockthemall.Activities.Rules.*
 import com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesManager.Companion.fromJson
 import com.projects.allnotificationblocker.blockthemall.Application.*
 import com.projects.allnotificationblocker.blockthemall.Fragments.Applications.ApplicationsAdapter.*
+import com.projects.allnotificationblocker.blockthemall.Fragments.Notifications.MyNotListenerService
 import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Utilities.*
 import com.projects.allnotificationblocker.blockthemall.domain.*
@@ -194,8 +195,11 @@ class ApplicationsFragment: Fragment(), ApplicationAdapterListener {
         }
 
         rulesManager!!.enableRule(appInfo.packageName, null)
-
         rulesManager!!.logAllRules()
+        
+        // Save rules and trigger notification service update
+        Util.saveRulesManager(rulesManager!!)
+        MyNotListenerService.triggerImmediateCancellation(requireContext())
 
         listener!!.refreshHome()
     }
@@ -206,6 +210,11 @@ class ApplicationsFragment: Fragment(), ApplicationAdapterListener {
         position = apps.indexOf(appInfo)
         rulesManager!!.disableRule(appInfo.packageName)
         rulesManager!!.logAllRules()
+        
+        // Save rules and trigger notification service update
+        Util.saveRulesManager(rulesManager!!)
+        MyNotListenerService.triggerImmediateCancellation(requireContext())
+        
         listener!!.refreshHome()
     }
 

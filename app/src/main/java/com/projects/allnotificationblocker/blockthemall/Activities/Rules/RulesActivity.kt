@@ -174,9 +174,10 @@ class RulesActivity: AppCompatActivity(), View.OnClickListener, RulesAdapterList
         dialog.setOnDismissListener(object: DialogInterface.OnDismissListener {
             override fun onDismiss(dialogInterface: DialogInterface?) {
                 if (dialog.result) {
-                    rule.stopTimer(applicationContext);
+                    rule.stopTimer(applicationContext)
                     rulesManager!!.rules.remove(rule)
                     rules.remove(rule)
+                    Util.saveRulesManager(rulesManager!!)
                     rulesAdapter!!.notifyDataSetChanged()
                 }
             }
@@ -190,7 +191,9 @@ class RulesActivity: AppCompatActivity(), View.OnClickListener, RulesAdapterList
     }
 
     override fun updateRule(pkey: Int, schedule: Schedule) {
-        rulesManager!!.editCustomRule(pkey, schedule)
+        val updatedRule = rulesManager!!.editCustomRule(pkey, schedule)
+        updatedRule?.scheduleTimers(applicationContext)
+        Util.saveRulesManager(rulesManager!!)
         rulesAdapter!!.notifyDataSetChanged()
     }
 
@@ -210,8 +213,9 @@ class RulesActivity: AppCompatActivity(), View.OnClickListener, RulesAdapterList
                 schedule, mode
             )
         }
-        Util.saveRulesManager(rulesManager!!)
         rules.add(rule)
+        rule.scheduleTimers(applicationContext)
+        Util.saveRulesManager(rulesManager!!)
         rulesAdapter!!.notifyDataSetChanged()
 
     }

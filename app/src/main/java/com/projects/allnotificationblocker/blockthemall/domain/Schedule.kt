@@ -112,7 +112,12 @@ data class Schedule(
         if (!isValid(date)) {
             return context.getString(R.string.invalid_time_range)
         }
-        val time = timeRange!!.getStartString() + " - " + timeRange!!.getEndString()
+        val timeBase = timeRange!!.getStartString() + " - " + timeRange!!.getEndString()
+        val time = if (timeRange!!.spansMidnight()) {
+            timeBase + " " + context.getString(R.string.spans_midnight_suffix)
+        } else {
+            timeBase
+        }
         if (isForever()) {
             return if (weekDays?.anyWeekDaysSelected() == true) {
                 time + "\n" + context.getString(R.string.those_week_days_forever)

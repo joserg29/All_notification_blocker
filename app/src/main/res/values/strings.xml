@@ -145,5 +145,7 @@
     <string name="custom_schedule">custom schedule</string>
     <string name="permanent_schedule">permanent schedule</string>
     <string name="app_is_running">app is running</string>
+    <string name="spans_midnight">Spans midnight</string>
+    <string name="spans_midnight_suffix">(spans midnight)</string>
 
 </resources>

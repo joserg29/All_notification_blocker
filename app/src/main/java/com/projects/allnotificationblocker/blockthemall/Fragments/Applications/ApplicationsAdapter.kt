@@ -64,7 +64,9 @@ class ApplicationsAdapter(
     }
 
     private fun reArrange() {
+        // Sort apps to show enabled ones first
         mApps.sort()
+        // Notify adapter of data change - this will rebind all views with correct states
         this.notifyDataSetChanged()
     }
 
@@ -86,33 +88,50 @@ class ApplicationsAdapter(
 
         Glide.with(fragment).load(appIcon).into(genericAppInfoViewHolder.imageViewAppIcon!!)
         if (mode == Constants.MODE_HOMEPAGE || mode == Constants.MODE_PROFILE) {
+            // Remove listener first to prevent triggering during state update
             genericAppInfoViewHolder.switchEnableDisableRule!!.setOnCheckedChangeListener(null)
+            
+            // Update the UI state based on current rules
             updateEnabledRulesCount(genericAppInfoViewHolder, appInfo)
 
+            // Set listener after state is updated
             genericAppInfoViewHolder.switchEnableDisableRule!!.setOnCheckedChangeListener(
                 CompoundButton.OnCheckedChangeListener { compoundButton: CompoundButton?, b: Boolean ->
+                    // Prevent recursive calls - verify the state actually changed
+                    val currentState = listener.rulesManager?.hasPermenantEnabledRule(appInfo.packageName) == true ||
+                            listener.rulesManager?.hasCustomEnabledValidRules(appInfo.packageName) == true
+                    if (b == currentState) {
+                        // State already matches, ignore this trigger
+                        return@OnCheckedChangeListener
+                    }
+                    
                     if (b) {
                         listener.enableRules(appInfo)
-                        updateEnabledRulesCount(genericAppInfoViewHolder, appInfo)
                         appInfo.isEnabled = true
                     } else {
                         listener.disableRules(appInfo)
                         appInfo.isEnabled = false
-                        updateEnabledRulesCount(genericAppInfoViewHolder, appInfo)
                     }
-                    reArrange()
+                    // Update UI for this specific item only
+                    updateEnabledRulesCount(genericAppInfoViewHolder, appInfo)
+                    // Refresh all items to ensure consistency
+                    notifyDataSetChanged()
                 })
         } else {
             genericAppInfoViewHolder.imageViewRuleIcon!!.setVisibility(View.GONE)
             genericAppInfoViewHolder.textViewRules!!.visibility = View.GONE
             genericAppInfoViewHolder.switchEnableDisableRule!!.setOnCheckedChangeListener(null)
-            if (listener.exceptions.contains(appInfo.packageName)) {
-                genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = true
-            } else {
-                genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = false
-            }
+            val isException = listener.exceptions.contains(appInfo.packageName)
+            genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = isException
+            appInfo.isEnabled = isException
             genericAppInfoViewHolder.switchEnableDisableRule!!.setOnCheckedChangeListener(
                 CompoundButton.OnCheckedChangeListener { compoundButton: CompoundButton?, b: Boolean ->
+                    // Prevent recursive calls
+                    val currentState = listener.exceptions.contains(appInfo.packageName)
+                    if (b == currentState) {
+                        return@OnCheckedChangeListener
+                    }
+                    
                     if (b) {
                         listener.selectApp(appInfo)
                         appInfo.isEnabled = true
@@ -120,7 +139,7 @@ class ApplicationsAdapter(
                         listener.unselectApp(appInfo)
                         appInfo.isEnabled = false
                     }
-                    reArrange()
+                    notifyDataSetChanged()
                 })
         }
 
@@ -136,9 +155,12 @@ class ApplicationsAdapter(
         genericAppInfoViewHolder: AppInfoViewHolder,
         appInfo: AppInfo,
     ) {
-        if (listener.rulesManager!!.isBlockAllEnabled ||
-            listener.rulesManager!!.hasCustomEnabledValidRules(Constants.RULE_BLOCK_ALL) == true
-        ) {
+        val rulesManager = listener.rulesManager ?: return
+        val isBlockAllEnabled = rulesManager.isBlockAllEnabled ||
+                rulesManager.hasCustomEnabledValidRules(Constants.RULE_BLOCK_ALL) == true
+        
+        if (isBlockAllEnabled) {
+            // Block All is enabled - hide switch and show blocked state
             genericAppInfoViewHolder.switchEnableDisableRule!!.visibility = View.GONE
             genericAppInfoViewHolder.textViewRules!!.setText(R.string.always_block)
             genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_block)
@@ -148,15 +170,22 @@ class ApplicationsAdapter(
                     R.color.red
                 ), PorterDuff.Mode.SRC_IN
             )
+            genericAppInfoViewHolder.imageViewRuleIcon!!.visibility = View.VISIBLE
+            genericAppInfoViewHolder.textViewRules!!.visibility = View.VISIBLE
         } else {
+            // Block All is not enabled - show switch and individual app state
             genericAppInfoViewHolder.switchEnableDisableRule!!.visibility = View.VISIBLE
+            genericAppInfoViewHolder.imageViewRuleIcon!!.visibility = View.VISIBLE
+            genericAppInfoViewHolder.textViewRules!!.visibility = View.VISIBLE
 
-            if (listener.rulesManager!!.hasCustomEnabledValidRules(appInfo.packageName) == true) {
+            // Check individual app's rule state
+            val hasCustomRules = rulesManager.hasCustomEnabledValidRules(appInfo.packageName) == true
+            val hasPermanentRule = rulesManager.hasPermenantEnabledRule(appInfo.packageName)
+            
+            if (hasCustomRules) {
+                // App has custom schedule rules
                 genericAppInfoViewHolder.textViewRules!!.setText(R.string.custom_schedule)
-
-                //genericViewHolder.switchEnableDisableRule.setOnCheckedChangeListener (null);
                 genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = true
-
                 genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_time)
                 genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
                     ContextCompat.getColor(
@@ -164,32 +193,31 @@ class ApplicationsAdapter(
                         R.color.colorAccent
                     ), PorterDuff.Mode.SRC_IN
                 )
+                appInfo.isEnabled = true
+            } else if (hasPermanentRule) {
+                // App has permanent block rule
+                genericAppInfoViewHolder.textViewRules!!.setText(R.string.always_block)
+                genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = true
+                genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_block)
+                genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
+                    ContextCompat.getColor(
+                        MyApplication.context,
+                        R.color.red
+                    ), PorterDuff.Mode.SRC_IN
+                )
+                appInfo.isEnabled = true
             } else {
-                if (listener.rulesManager!!.hasPermenantEnabledRule(appInfo.packageName)) {
-                    genericAppInfoViewHolder.textViewRules!!.setText(R.string.always_block)
-
-                    genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = true
-
-                    genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_block)
-                    genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
-                        ContextCompat.getColor(
-                            MyApplication.context,
-                            R.color.red
-                        ), PorterDuff.Mode.SRC_IN
-                    )
-                } else {
-                    genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = false
-
-                    genericAppInfoViewHolder.textViewRules!!.setText(R.string.no_schedules_applied)
-
-                    genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_check)
-                    genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
-                        ContextCompat.getColor(
-                            MyApplication.context,
-                            R.color.green
-                        ), PorterDuff.Mode.SRC_IN
-                    )
-                }
+                // App has no rules - not blocked
+                genericAppInfoViewHolder.switchEnableDisableRule!!.isChecked = false
+                genericAppInfoViewHolder.textViewRules!!.setText(R.string.no_schedules_applied)
+                genericAppInfoViewHolder.imageViewRuleIcon!!.setImageResource(R.drawable.ic_check)
+                genericAppInfoViewHolder.imageViewRuleIcon!!.setColorFilter(
+                    ContextCompat.getColor(
+                        MyApplication.context,
+                        R.color.green
+                    ), PorterDuff.Mode.SRC_IN
+                )
+                appInfo.isEnabled = false
             }
         }
     }

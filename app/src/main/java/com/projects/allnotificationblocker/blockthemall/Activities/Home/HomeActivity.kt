@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.TimingLogger
 import android.view.ContextThemeWrapper
@@ -581,12 +582,17 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
     }
 
     override fun refreshHome() {
-        Timber.tag("AppInfo").d("refreshViews()")
+        Timber.tag("AppInfo").d("refreshHome()")
         Timber.tag("AppInfo").d("Checking if the current profile is changed by user")
         selectedProfileName = checkProfileChanged()
         Timber.tag("AppInfo").d("selectedProfileName: %s", selectedProfileName)
         refreshBlockAllSwitch()
         refreshBlockingStatus()
+        // Refresh applications fragment to update all switch states
+        sectionsPagerAdapter?.applicationsFragment?.let {
+            it.position = -1
+            it.refreshApps2()
+        }
     }
 
     fun findCurrentProfileName(): String {
@@ -715,11 +721,37 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
 
         saveRulesManager(rulesManager!!)
         timings.addSplit("Util.saveRulesManager(rulesManager);")
-        refreshBlockingStatus()
+        
+        // Ensure service is running and trigger immediate cancellation
+        ensureServiceRunningAndCancelNotifications()
+        timings.addSplit("ensureServiceRunningAndCancelNotifications();")
+        
+        // Refresh all views including applications fragment to update switch states
+        refreshViews(true)
 
         timings.addSplit("refreshViews();")
 
         timings.dumpToLog()
+    }
+    
+    private fun ensureServiceRunningAndCancelNotifications() {
+        try {
+            // Ensure service is running first
+            if (!MyNotListenerService.isServiceRunning) {
+                Timber.tag(TAG).d("Service not running, starting it...")
+                MyNotListenerService.startService(applicationContext, MyNotListenerService.Actions.Enable)
+                // Give it a moment to start, then trigger cancellation
+                Handler(Looper.getMainLooper()).postDelayed({
+                    MyNotListenerService.triggerImmediateCancellation(applicationContext)
+                }, 100)
+            } else {
+                // Service is running, trigger immediate cancellation
+                MyNotListenerService.triggerImmediateCancellation(applicationContext)
+            }
+            Timber.tag(TAG).d("Triggered immediate notification cancellation")
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error ensuring service running and cancelling notifications")
+        }
     }
 
     override fun startNotificationsService() {

@@ -1,13 +1,12 @@
 package com.projects.allnotificationblocker.blockthemall.data.db.entities
 
-import android.app.*
 import android.content.*
 import androidx.room.*
 import androidx.room.Entity
-import com.projects.allnotificationblocker.blockthemall.Utilities.*
-import com.projects.allnotificationblocker.blockthemall.data.db.converter.*
-import com.projects.allnotificationblocker.blockthemall.domain.*
 import com.projects.allnotificationblocker.blockthemall.R
+import com.projects.allnotificationblocker.blockthemall.Utilities.*
+import com.projects.allnotificationblocker.blockthemall.Utilities.scheduler.RuleScheduler
+import com.projects.allnotificationblocker.blockthemall.domain.*
 import java.util.*
 
 @Entity(tableName = "rules_table")
@@ -19,7 +18,14 @@ data class Rule(
     var isEnabled: Boolean,
     var everyday: Boolean = false,
     var schedule: Schedule,
+    var alarmId: String = UUID.randomUUID().toString(),
 ) {
+
+    init {
+        if (alarmId.isEmpty()) {
+            alarmId = UUID.randomUUID().toString()
+        }
+    }
 
     @Ignore fun logRule() {/*    Timber.tag("AppInfo").d(
                 "### RULE: [%s] from: %s, to: %s, enabled: %s, inActive: %s, Active: %s, Expired: %s",
@@ -66,23 +72,12 @@ data class Rule(
         get() = !packageName.startsWith("com.")
 
 
+    fun scheduleTimers(context: Context) {
+        RuleScheduler.schedule(context, this)
+    }
+
     fun stopTimer(context: Context) {
-
-        //used for register alarm manager
-        val pendingIntent: PendingIntent
-
-        val intent = Intent("com.techblogon.alarmexample")
-        intent.putExtra("rule_type", this.ruleType)
-        intent.putExtra("package_name", packageName)
-        intent.putExtra("schedule", ScheduleConverters().toJson(schedule))
-
-
-        pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        //used to store running alarmmanager instance
-        val alarmManager: AlarmManager =
-            (context.getSystemService(Context.ALARM_SERVICE)) as AlarmManager
-        checkNotNull(alarmManager)
-        alarmManager.cancel(pendingIntent)
+        RuleScheduler.cancel(context, this)
     }
 
     companion object {

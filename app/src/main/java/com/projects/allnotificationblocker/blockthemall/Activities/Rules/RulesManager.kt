@@ -23,6 +23,8 @@ class RulesManager {
         for (i in rules.indices) {
             if (rules[i].packageName == packageName && rules[i].isPermenant) {
                 rules[i].disableRule()
+                rules[i].stopTimer(MyApplication.context)
+                saveRules()
                 return
             }
         }
@@ -32,12 +34,11 @@ class RulesManager {
     fun editCustomRule(
         pkey: Int,
         schedule: Schedule,
-    ) {
-        val updated = rules.find { it.pkey == pkey }!!.apply {
-            this.schedule = schedule
-        }
+    ): Rule? {
+        val updated = rules.find { it.pkey == pkey } ?: return null
+        updated.schedule = schedule
         MyApplication.rulesViewModel.update(updated)
-
+        return updated
     }
 
     fun addCustomRule(
@@ -80,6 +81,7 @@ class RulesManager {
         for (i in rules.indices) {
             if (rules[i].packageName == packageName) {
                 rules[i].isEnabled = false
+                rules[i].stopTimer(MyApplication.context)
             }
         }
 
@@ -92,6 +94,8 @@ class RulesManager {
                 rules[i].schedule == schedule
             ) {
                 rules[i].isEnabled = false
+                rules[i].stopTimer(MyApplication.context)
+                saveRules()
                 return
             }
         }

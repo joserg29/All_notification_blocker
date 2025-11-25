@@ -102,6 +102,20 @@
             </intent-filter>
         </service>
 
+        <receiver
+            android:name=".Utilities.scheduler.ScheduleAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".Utilities.scheduler.ScheduleBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/ads_app_id" />

@@ -13,6 +13,7 @@ import com.projects.allnotificationblocker.blockthemall.BuildConfig
 import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Utilities.*
 import com.projects.allnotificationblocker.blockthemall.Utilities.Constants.CHANNEL_ID
+import com.projects.allnotificationblocker.blockthemall.Utilities.scheduler.RuleScheduler
 import com.projects.allnotificationblocker.blockthemall.data.repo.*
 import com.projects.allnotificationblocker.blockthemall.domain.*
 import timber.log.*
@@ -43,6 +44,10 @@ class MyApplication: MultiDexApplication() {
             .setPrefsName(packageName)
             .setUseDefaultSharedPreference(true)
             .build()
+
+        Util.loadRulesManager()?.let {
+            RuleScheduler.rescheduleAll(this, it.rules)
+        }
 
         if (STORE_NOTIFICATIONS) {
             Prefs.putString(Constants.PARAM_NOTIFICATIONS_MANAGER, "")
