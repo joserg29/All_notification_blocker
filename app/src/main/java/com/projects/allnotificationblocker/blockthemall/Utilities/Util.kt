@@ -289,12 +289,10 @@ object Util {
 
     fun saveRulesManager(rulesManager: RulesManager) {
         Log.i("AppProfile", "Saving RulesManager to Prefs rulesNum:${rulesManager.rules.size}")
-        val runnable = Runnable {
-            val rulesManagerString = rulesManager.toJson()
-            Prefs.putString(Constants.PARAM_RULES_MANAGER, rulesManagerString)
-        }
-        val t = Thread(runnable)
-        t.start()
+        // Save synchronously to avoid race conditions when service needs to read immediately
+        val rulesManagerString = rulesManager.toJson()
+        Prefs.putString(Constants.PARAM_RULES_MANAGER, rulesManagerString)
+        Timber.tag("Util").d("RulesManager saved synchronously with %d rules", rulesManager.rules.size)
     }
 
     fun finishProfile(name: String?, depth: Int) {

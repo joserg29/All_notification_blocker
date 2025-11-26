@@ -130,12 +130,16 @@ class MyNotListenerService: NotificationListenerService() {
     
     fun cancelAllBlockedNotifications() {
         try {
-            // Reload rules to get latest state
+            // Reload rules to get latest state (critical for Block All)
             rulesManager = loadRulesManager()
             if (rulesManager == null) {
                 Timber.tag(TAG).w("RulesManager is null, cannot cancel notifications")
                 return
             }
+            
+            val isBlockAllEnabled = rulesManager?.isBlockAllEnabled ?: false
+            Timber.tag(TAG).d("cancelAllBlockedNotifications: isBlockAllEnabled=%s, rules count=%d", 
+                isBlockAllEnabled, rulesManager?.rules?.size ?: 0)
             
             // Get all active notifications - check if service is connected first
             val activeNotifications = try {
@@ -153,7 +157,10 @@ class MyNotListenerService: NotificationListenerService() {
                 return
             }
             
+            Timber.tag(TAG).d("Checking %d active notifications", activeNotifications.size)
             var cancelledCount = 0
+            val packagesToClose = mutableSetOf<String>()
+            
             for (sbn in activeNotifications) {
                 try {
                     // Skip system UI and our own app
@@ -164,23 +171,81 @@ class MyNotListenerService: NotificationListenerService() {
                     
                     // Check if this notification should be blocked
                     val isAllowed = rulesManager?.isAllowed(packageName) ?: true
+                    Timber.tag(TAG).d("Notification from %s: isAllowed=%s", packageName, isAllowed)
+                    
                     if (!isAllowed) {
                         try {
+                            // Try multiple cancellation methods
                             cancelNotification(sbn.key)
+                            
+                            // Also try by tag/id if available
+                            if (sbn.tag != null) {
+                                try {
+                                    cancelNotification(packageName, sbn.tag, sbn.id)
+                                } catch (e: Exception) {
+                                    // Ignore - may not be supported
+                                }
+                            }
+                            
                             cancelledCount++
-                            Timber.tag(TAG).d("Cancelled notification from: %s", packageName)
-                            BackgroundAppController.closeApp(applicationContext, packageName)
+                            packagesToClose.add(packageName)
+                            Timber.tag(TAG).d("Cancelled notification from: %s (key: %s)", packageName, sbn.key)
                         } catch (e: SecurityException) {
                             Timber.tag(TAG).w("SecurityException cancelling notification from: %s", packageName)
+                            packagesToClose.add(packageName) // Still close app even if cancellation fails
                         } catch (e: Exception) {
                             Timber.tag(TAG).e(e, "Error cancelling notification from: %s", packageName)
+                            packagesToClose.add(packageName) // Still close app even if cancellation fails
                         }
                     }
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Error processing notification")
                 }
             }
-            Timber.tag(TAG).d("Cancelled %d blocked notifications", cancelledCount)
+            
+            // Close all background apps for blocked notifications (more aggressive in Block All mode)
+            for (packageName in packagesToClose) {
+                try {
+                    BackgroundAppController.closeApp(applicationContext, packageName, isBlockAllEnabled)
+                    Timber.tag(TAG).d("Requested background app closure for: %s (BlockAll=%s)", packageName, isBlockAllEnabled)
+                } catch (e: Exception) {
+                    Timber.tag(TAG).e(e, "Error closing background app for: %s", packageName)
+                }
+            }
+            
+            Timber.tag(TAG).d("Cancelled %d blocked notifications, closed %d apps", cancelledCount, packagesToClose.size)
+            
+            // Retry cancellation after a short delay for any notifications that might have been missed
+            if (cancelledCount > 0) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    try {
+                        val retryNotifications = getActiveNotifications()
+                        if (retryNotifications != null) {
+                            var retryCount = 0
+                            for (sbn in retryNotifications) {
+                                val packageName = sbn.packageName ?: continue
+                                if (packageName == "com.android.systemui" || packageName == this.packageName) {
+                                    continue
+                                }
+                                val isAllowed = rulesManager?.isAllowed(packageName) ?: true
+                                if (!isAllowed) {
+                                    try {
+                                        cancelNotification(sbn.key)
+                                        retryCount++
+                                    } catch (e: Exception) {
+                                        // Ignore retry errors
+                                    }
+                                }
+                            }
+                            if (retryCount > 0) {
+                                Timber.tag(TAG).d("Retry cancelled %d additional notifications", retryCount)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Timber.tag(TAG).d("Retry cancellation error: %s", e.message)
+                    }
+                }, 200)
+            }
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in cancelAllBlockedNotifications")
         } 
@@ -299,22 +364,64 @@ class MyNotListenerService: NotificationListenerService() {
                 return
             }
             val sourcePackage = sbn.packageName ?: return
+            
+            // Reload rules to get latest state (especially important for Block All)
             rulesManager = loadRulesManager()
             if (rulesManager == null) {
-                Timber.tag(TAG).w("RulesManager is null, allowing notification")
+                Timber.tag(TAG).w("RulesManager is null, allowing notification from %s", sourcePackage)
                 return
             }
+            
             val isAllowed = rulesManager?.isAllowed(sourcePackage) ?: true
+            Timber.tag(TAG).d("Notification from %s: isAllowed=%s, isBlockAllEnabled=%s", 
+                sourcePackage, isAllowed, rulesManager?.isBlockAllEnabled)
+            
+            // Always store the notification first
             val intent = prepareIntent(sbn, false, !isAllowed)
             NotificationsFragment.onReceive(intent)
+            
             if (!isAllowed) {
+                // Block this notification - try multiple cancellation methods
                 try {
+                    // Method 1: Cancel by key (primary method)
                     cancelNotification(sbn.key)
-                    BackgroundAppController.closeApp(applicationContext, sourcePackage)
+                    Timber.tag(TAG).d("Cancelled notification from %s using key: %s", sourcePackage, sbn.key)
+                    
+                    // Method 2: Cancel by tag and ID (backup method)
+                    if (sbn.tag != null) {
+                        try {
+                            cancelNotification(sourcePackage, sbn.tag, sbn.id)
+                            Timber.tag(TAG).d("Cancelled notification from %s using tag/id: %s/%d", sourcePackage, sbn.tag, sbn.id)
+                        } catch (e: Exception) {
+                            Timber.tag(TAG).d("Could not cancel by tag/id (may not be supported): %s", e.message)
+                        }
+                    }
+                    
+                    // Method 3: Retry cancellation after a short delay (some notifications take time to appear)
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        try {
+                            cancelNotification(sbn.key)
+                            Timber.tag(TAG).d("Retry cancelled notification from %s", sourcePackage)
+                        } catch (e: Exception) {
+                            Timber.tag(TAG).d("Retry cancellation failed: %s", e.message)
+                        }
+                    }, 100)
+                    
+                    // Close the background app immediately (more aggressive in Block All mode)
+                    val isBlockAllMode = rulesManager?.isBlockAllEnabled ?: false
+                    BackgroundAppController.closeApp(applicationContext, sourcePackage, isBlockAllMode)
+                    Timber.tag(TAG).d("Requested background app closure for %s (BlockAll=%s)", sourcePackage, isBlockAllMode)
+                    
                 } catch (e: SecurityException) {
-                    Timber.tag(TAG).w("SecurityException cancelling notification")
+                    Timber.tag(TAG).w("SecurityException cancelling notification from %s: %s", sourcePackage, e.message)
+                    // Still try to close the app even if cancellation fails
+                    val isBlockAllMode = rulesManager?.isBlockAllEnabled ?: false
+                    BackgroundAppController.closeApp(applicationContext, sourcePackage, isBlockAllMode)
                 } catch (e: Exception) {
-                    Timber.tag(TAG).e(e, "Error cancelling notification")
+                    Timber.tag(TAG).e(e, "Error cancelling notification from %s", sourcePackage)
+                    // Still try to close the app even if cancellation fails
+                    val isBlockAllMode = rulesManager?.isBlockAllEnabled ?: false
+                    BackgroundAppController.closeApp(applicationContext, sourcePackage, isBlockAllMode)
                 }
             }
         } catch (e: Exception) {

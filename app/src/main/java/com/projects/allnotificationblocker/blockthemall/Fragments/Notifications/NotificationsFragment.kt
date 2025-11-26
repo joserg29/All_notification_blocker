@@ -18,6 +18,7 @@ import com.projects.allnotificationblocker.blockthemall.R
 import com.projects.allnotificationblocker.blockthemall.Utilities.*
 import com.projects.allnotificationblocker.blockthemall.data.db.entities.*
 import com.projects.allnotificationblocker.blockthemall.data.repo.*
+import com.projects.allnotificationblocker.blockthemall.Activities.Rules.RulesManager
 import kotlinx.coroutines.*
 import timber.log.*
 import java.util.*
@@ -272,6 +273,17 @@ class NotificationsFragment: Fragment() {
             if (myNotification.isSocialAppCallEnd) {
                 AudioSilencer.releasePulseImmediately()
             }
+            
+            // Check if Block All is enabled - if so, don't store blocked notifications
+            val rulesManager = Util.loadRulesManager()
+            val isBlockAllEnabled = rulesManager?.isBlockAllEnabled ?: false
+            
+            // If Block All is enabled and this notification is blocked, don't store it
+            if (isBlockAllEnabled && myNotification.isBlocked) {
+                Timber.tag("NotificationsFragment").d("Block All enabled - not storing blocked notification from %s", myNotification.packageName)
+                return
+            }
+            
             when (myNotification.type) {
                 Constants.DATA_TYPE_APPLICATION -> {
                     /* added =

@@ -13,8 +13,9 @@ interface NotificationsDao {
 
     @Query("DELETE FROM notifications") suspend fun deleteAllNotifications()
 
-    @Query("SELECT * FROM notifications ORDER BY postTimeEpoch DESC")
+    // Filter out blocked notifications - only show unblocked ones
+    @Query("SELECT * FROM notifications WHERE isBlocked = 0 ORDER BY postTimeEpoch DESC")
     fun getAllNotificationsLive(): LiveData<MutableList<NotificationInfo>>
-    @Query("SELECT * FROM notifications ORDER BY postTimeEpoch DESC")
+    @Query("SELECT * FROM notifications WHERE isBlocked = 0 ORDER BY postTimeEpoch DESC")
     suspend fun getAllNotifications(): MutableList<NotificationInfo>
 }

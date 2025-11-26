@@ -762,6 +762,9 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
     
     private fun ensureServiceRunningAndCancelNotifications() {
         try {
+            Timber.tag(TAG).d("ensureServiceRunningAndCancelNotifications: isServiceRunning=%s, isBlockAllEnabled=%s", 
+                MyNotListenerService.isServiceRunning, rulesManager?.isBlockAllEnabled)
+            
             // Ensure service is running first
             if (!MyNotListenerService.isServiceRunning) {
                 Timber.tag(TAG).d("Service not running, starting it...")
@@ -769,10 +772,13 @@ class HomeActivity : AppCompatActivity(), View.OnClickListener,
                 // Give it a moment to start, then trigger cancellation
                 Handler(Looper.getMainLooper()).postDelayed({
                     MyNotListenerService.triggerImmediateCancellation(applicationContext)
-                }, 100)
+                }, 150) // Slightly longer delay to ensure service is fully initialized
             } else {
                 // Service is running, trigger immediate cancellation
-                MyNotListenerService.triggerImmediateCancellation(applicationContext)
+                // Use a small delay to ensure rules are saved first
+                Handler(Looper.getMainLooper()).postDelayed({
+                    MyNotListenerService.triggerImmediateCancellation(applicationContext)
+                }, 50)
             }
             Timber.tag(TAG).d("Triggered immediate notification cancellation")
         } catch (e: Exception) {

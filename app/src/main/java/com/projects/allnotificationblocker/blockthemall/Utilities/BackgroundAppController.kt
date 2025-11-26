@@ -12,15 +12,20 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object BackgroundAppController {
     private const val MIN_KILL_INTERVAL_MS = 60_000L
+    private const val MIN_KILL_INTERVAL_BLOCK_ALL_MS = 5_000L // More aggressive for Block All
     private val lastKillMap = ConcurrentHashMap<String, Long>()
 
-    fun closeApp(context: Context, packageName: String?) {
+    fun closeApp(context: Context, packageName: String?, isBlockAllMode: Boolean = false) {
         if (packageName.isNullOrBlank()) return
 
         val now = System.currentTimeMillis()
         val lastKill = lastKillMap[packageName]
-        if (lastKill != null && now - lastKill < MIN_KILL_INTERVAL_MS) {
+        val minInterval = if (isBlockAllMode) MIN_KILL_INTERVAL_BLOCK_ALL_MS else MIN_KILL_INTERVAL_MS
+        
+        if (lastKill != null && now - lastKill < minInterval) {
             // Avoid spamming the system with kill requests for the same package.
+            Timber.tag("BackgroundAppController").d("Skipping kill for %s (rate limited, last kill %d ms ago)", 
+                packageName, now - lastKill)
             return
         }
         lastKillMap[packageName] = now
@@ -28,9 +33,16 @@ object BackgroundAppController {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
             ?: return
         try {
-            Timber.tag("BackgroundAppController").d("Killing background processes for %s", packageName)
+            Timber.tag("BackgroundAppController").d("Killing background processes for %s (BlockAll=%s)", 
+                packageName, isBlockAllMode)
+            
+            // Method 1: killBackgroundProcesses (standard method)
             activityManager.killBackgroundProcesses(packageName)
+            
+            // Method 2: forceStopCompat (more aggressive, if available)
             forceStopCompat(activityManager, packageName)
+            
+            Timber.tag("BackgroundAppController").d("Successfully requested closure for %s", packageName)
         } catch (securityException: SecurityException) {
             Timber.tag("BackgroundAppController")
                 .w(securityException, "Not allowed to kill background process for %s", packageName)
